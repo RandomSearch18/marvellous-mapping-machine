@@ -10,11 +10,11 @@ def validate_args():
         return True
     if len(argv) < 2:
         print_error(
-            f"Please provide a path to the OSM data file, e.g. {argv[0]} region.osm",
+            f"Too few arguments. Please provide a path to the OSM data file, e.g. {argv[0]} region.osm",
         )
         return False
     print_error(
-        f"Too many arguments provided. Please provide a path to the OSM data file, e.g. {argv[0]} region.osm",
+        f"Too many arguments. Please provide a path to the OSM data file, e.g. {argv[0]} region.osm",
     )
     return False
 
