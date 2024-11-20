@@ -35,10 +35,14 @@ def validate_file_is_readable(file_path: str):
         with open(file_path, "r") as file:
             if not Path(file.name).is_file():
                 print_error(f"Cannot access {file_path}: not a file")
+                return False
             return True
 
     except FileNotFoundError:
         print_error(f"File {file_path} not found.")
+        return False
+    except IsADirectoryError:
+        print_error(f"Cannot access {file_path}: is a directory")
         return False
     except PermissionError:
         print_error(f"Cannot access file {file_path}: permission denied")
@@ -50,4 +54,6 @@ if __name__ == "__main__":
         exit(1)
 
     data_file_path = get_data_file_path()
-    print(data_file_path)
+
+    if not validate_file_is_readable(data_file_path):
+        exit(1)
