@@ -7,14 +7,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Web/JS stuff
 node_modules
 dist
 dist-ssr
 *.local
 
+# Python stuff
+.venv
+
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
