@@ -16,6 +16,10 @@ dist-ssr
 # Python stuff
 .venv
 
+# OSM data files used for testing
+*.osm
+*.osm.*
+
 # Editor directories and files
 .idea
 .DS_Store

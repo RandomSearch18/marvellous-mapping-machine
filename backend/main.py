@@ -1,6 +1,9 @@
 from pathlib import Path
 from sys import argv, stderr
 
+import osmnx
+import osmnx.graph
+
 
 def print_error(message: str):
     """Prints an error message to stderr"""
@@ -52,8 +55,11 @@ def validate_file_is_readable(file_path: str):
 if __name__ == "__main__":
     if not validate_args():
         exit(1)
-
     data_file_path = get_data_file_path()
-
     if not validate_file_is_readable(data_file_path):
         exit(1)
+    print(f"Using OSM data file {data_file_path}")
+
+    # Use OSMnx to parse the data and create a graph
+    graph = osmnx.graph.graph_from_xml(data_file_path, bidirectional=True)
+    print(graph)
