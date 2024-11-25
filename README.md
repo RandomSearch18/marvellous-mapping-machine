@@ -30,8 +30,12 @@ source .venv/bin/activate
 
 ### Install dependencies
 
-Run `python3 -m pip install -r requirements.txt` to install the dependencies.
+```bash
+python -m pip install -r backend/requirements.txt
+```
 
 ### Run the program
 
-Run `python3 main.py` to start the program.
+```bash
+python backend/main.py
+```
