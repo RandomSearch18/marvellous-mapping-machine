@@ -15,7 +15,13 @@ python3 -m venv .venv
 If you're on a school computer, you can't create a venv in your `:H` drive, so create it on the `C:` drive. E.g. in Git Bash:
 
 ```bash
-py -m venv $USERPROFILE/venvs/marvellous-mapping-machine
+py -m venv "$USERPROFILE/venvs/marvellous-mapping-machine"
+```
+
+Or in Powershell:
+
+```powershell
+py -m venv "$env:USERPROFILE\venvs\marvellous-mapping-machine"
 ```
 
 ### Activate the virtual environment
