@@ -2,6 +2,7 @@ from pathlib import Path
 from sys import argv, stderr
 
 import osmnx
+import osmnx.convert
 import osmnx.graph
 
 
@@ -63,3 +64,5 @@ if __name__ == "__main__":
     # Use OSMnx to parse the data and create a graph
     graph = osmnx.graph.graph_from_xml(data_file_path, bidirectional=True)
     print(graph)
+    undirected_graph = osmnx.convert.to_undirected(graph)
+    print(undirected_graph)
