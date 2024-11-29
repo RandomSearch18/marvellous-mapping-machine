@@ -4,6 +4,7 @@ from sys import argv, stderr
 import osmnx
 import osmnx.convert
 import osmnx.graph
+import osmnx.simplification
 
 
 def print_error(message: str):
@@ -62,7 +63,6 @@ if __name__ == "__main__":
     print(f"Using OSM data file {data_file_path}")
 
     # Use OSMnx to parse the data and create a graph
-    graph = osmnx.graph.graph_from_xml(data_file_path, bidirectional=True)
-    print(graph)
+    directed_graph = osmnx.graph.graph_from_xml(data_file_path, bidirectional=True)
     undirected_graph = osmnx.convert.to_undirected(graph)
     print(undirected_graph)
