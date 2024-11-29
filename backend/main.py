@@ -64,5 +64,5 @@ if __name__ == "__main__":
 
     # Use OSMnx to parse the data and create a graph
     directed_graph = osmnx.graph.graph_from_xml(data_file_path, bidirectional=True)
-    undirected_graph = osmnx.convert.to_undirected(graph)
+    undirected_graph = osmnx.convert.to_undirected(directed_graph)
     print(undirected_graph)
