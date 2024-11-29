@@ -6,6 +6,8 @@ import osmnx.convert
 import osmnx.graph
 import osmnx.simplification
 
+from .routing_engine import RoutingEngine
+
 
 def print_error(message: str):
     """Prints an error message to stderr"""
@@ -55,6 +57,7 @@ def validate_file_is_readable(file_path: str):
 
 
 if __name__ == "__main__":
+    # Check that we've been provided with a data file that we can read
     if not validate_args():
         exit(1)
     data_file_path = get_data_file_path()
@@ -62,7 +65,9 @@ if __name__ == "__main__":
         exit(1)
     print(f"Using OSM data file {data_file_path}")
 
-    # Use OSMnx to parse the data and create a graph
-    directed_graph = osmnx.graph.graph_from_xml(data_file_path, bidirectional=True)
-    undirected_graph = osmnx.convert.to_undirected(directed_graph)
-    print(undirected_graph)
+    routing_engine = RoutingEngine()
+    routing_graph = routing_engine.compute_graph(data_file_path)
+    print(
+        f"Generated routing graph with {len(routing_graph.graph.nodes)} nodes and {len(routing_graph.graph.edges)} edges"
+    )
+    print(routing_graph)
