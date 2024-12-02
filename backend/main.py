@@ -1,10 +1,5 @@
 from pathlib import Path
 from sys import argv, stderr
-
-import osmnx.convert
-import osmnx.graph
-import osmnx.simplification
-
 from routing_engine import RoutingEngine
 
 

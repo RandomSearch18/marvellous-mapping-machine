@@ -2,11 +2,33 @@ import networkx
 import osmnx.convert
 import osmnx.graph
 
+from backend.osm_data_types import Coordinates
+
 
 class RoutingGraph:
     def __init__(self, graph: networkx.Graph):
         self.osm_data = None  # TODO
         self.graph = graph
+
+
+class RoutingOptions:
+    pass
+
+
+class RouteResult:
+    # TODO
+    def __init__(self):
+        raise NotImplementedError
+
+
+class RouteCalculator:
+    def __init__(self, graph: RoutingGraph, options: RoutingOptions):
+        self.graph = graph
+        self.options = options
+
+    def calculate_route(self, start: Coordinates, end: Coordinates) -> RouteResult:
+        # TODO
+        raise NotImplementedError
 
 
 class RoutingEngine:
