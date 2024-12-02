@@ -1,12 +1,11 @@
 from pathlib import Path
 from sys import argv, stderr
 
-import osmnx
 import osmnx.convert
 import osmnx.graph
 import osmnx.simplification
 
-from .routing_engine import RoutingEngine
+from routing_engine import RoutingEngine
 
 
 def print_error(message: str):
