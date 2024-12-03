@@ -1,8 +1,16 @@
 # Marvellous mapping machine
 
-## Development instructions
+## Development instructions for backend
 
-Clone the repository and ensure you have Python v3.10+ installed.
+### Preparation
+
+Ensure you have Python v3.10+ installed.
+
+Clone the repository and change directory to the `backend` folder in this repository:
+
+```bash
+cd backend
+```
 
 ### Virtual environment
 
@@ -45,3 +53,33 @@ python -m pip install -r backend/requirements.txt
 ```bash
 python backend/main.py
 ```
+
+## Development instructions for frontend
+
+### Preparation
+
+Ensure you have Node.JS and Yarn v1 installed.
+
+Clone the repository and change directory to the `frontend` folder in this repository:
+
+```bash
+cd frontend
+```
+
+### Install dependencies
+
+Run:
+
+```bash
+yarn
+```
+
+### Start development server
+
+Run
+
+```bash
+yarn dev
+```
+
+And access the frontend using the URL displayed in your terminal.
