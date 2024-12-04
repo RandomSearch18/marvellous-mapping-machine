@@ -1,6 +1,11 @@
-.screens,
 .screen {
   height: 100%;
+  width: 100%;
+}
+
+.screen:not(#active-screen) {
+  display: none;
+  width: 0;
 }
 
 #main-map {
