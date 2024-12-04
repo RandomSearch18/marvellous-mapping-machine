@@ -12,11 +12,17 @@ bottomBar.addEventListener("click", (event) => {
   if (oldActiveButton) {
     oldActiveButton.classList.remove("active")
     oldActiveButton.classList.remove("border-pink-600")
+    oldActiveButton.classList.remove("bg-pink-200")
+    oldActiveButton.classList.remove("border-t-4")
+    oldActiveButton.classList.add("bg-pink-100")
   } else {
     console.warn("No active button to deactivate")
   }
   button.classList.add("active")
   button.classList.add("border-pink-600")
+  button.classList.add("bg-pink-200")
+  button.classList.add("border-t-4")
+  button.classList.remove("bg-pink-100")
 
   const activeScreen = document.querySelector("#active-screen")
   const nextScreen = document.querySelector(
