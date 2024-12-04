@@ -16,6 +16,10 @@ export default {
           ...daisyuiThemes.light,
           primary: "pink",
         },
+        dark: {
+          ...daisyuiThemes.dark,
+          primary: "pink",
+        },
       },
     ],
   },
