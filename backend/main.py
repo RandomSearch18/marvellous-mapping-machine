@@ -1,6 +1,7 @@
 from pathlib import Path
 from sys import argv, stderr
 from routing_engine import RoutingEngine
+import xml.etree.ElementTree
 
 
 def print_error(message: str):
@@ -60,8 +61,12 @@ if __name__ == "__main__":
     print(f"Using OSM data file {data_file_path}")
 
     routing_engine = RoutingEngine()
-    routing_graph = routing_engine.compute_graph(data_file_path)
-    print(
-        f"Generated routing graph with {len(routing_graph.graph.nodes)} nodes and {len(routing_graph.graph.edges)} edges"
-    )
-    print(routing_graph)
+    try:
+        routing_graph = routing_engine.compute_graph(data_file_path)
+        print(
+            f"Generated routing graph with {len(routing_graph.graph.nodes)} nodes and {len(routing_graph.graph.edges)} edges"
+        )
+        print(routing_graph)
+    except xml.etree.ElementTree.ParseError as error:
+        print_error(f"Failed to parse OSM data")
+        print_error(f"Invalid XML: {error}")

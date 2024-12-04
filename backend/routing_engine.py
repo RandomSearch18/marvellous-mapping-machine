@@ -1,7 +1,7 @@
+import xml.etree.ElementTree
 import networkx
 import osmnx.convert
 import osmnx.graph
-
 from osm_data_types import Coordinates
 
 
