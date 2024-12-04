@@ -1,5 +1,6 @@
 import leaflet from "leaflet"
 import "leaflet/dist/leaflet.css"
+import "./bottomBar.mjs"
 
 const mainMap = leaflet.map("main-map").setView([51.27556, -0.37834], 15)
 
