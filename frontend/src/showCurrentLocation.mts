@@ -1,15 +1,24 @@
 import leaflet from "leaflet"
 import { mainMap } from "./mainMap.mjs"
 
+let locationMarker: leaflet.Circle | null = null
+let locationCircle: leaflet.Circle | null = null
+
+function cleanupMarkers() {
+  if (locationMarker) locationMarker.remove()
+  if (locationCircle) locationCircle.remove()
+}
+
 mainMap.on("locationfound", (event) => {
+  cleanupMarkers()
   const radius = event.accuracy / 2
-  leaflet
+  locationMarker = leaflet
     .circle(event.latlng, {
       radius: Math.min(20, radius),
       fillOpacity: 1,
     })
     .addTo(mainMap)
-  leaflet
+  locationCircle = leaflet
     .circle(event.latlng, {
       radius,
     })
@@ -18,6 +27,7 @@ mainMap.on("locationfound", (event) => {
 })
 
 mainMap.on("locationerror", (event) => {
+  cleanupMarkers()
   console.error("Leaflet location error", event)
 })
 
