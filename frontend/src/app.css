@@ -1,0 +1,14 @@
+.screen {
+  height: 100%;
+  width: 100%;
+}
+
+.screen:not(#active-screen) {
+  display: none;
+  width: 0;
+}
+
+#main-map {
+  height: calc(100dvh - 4rem);
+  width: 100%;
+}

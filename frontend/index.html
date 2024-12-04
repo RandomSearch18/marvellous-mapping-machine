@@ -6,10 +6,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Marvellous mapping machine</title>
     <link rel="stylesheet" href="src/index.css" />
+    <link rel="stylesheet" href="src/app.css" />
   </head>
   <body>
     <div id="app">
-      <h1>Marvellous mapping machine</h1>
+      <h1 class="sr-only">Marvellous mapping machine</h1>
+      <div class="content">
+        <div id="screens">
+          <div class="screen" data-screen="map" id="active-screen">
+            <div id="main-map"></div>
+          </div>
+          <div class="screen" data-screen="route">Route screen!</div>
+          <div class="screen" data-screen="options">Options screen!</div>
+        </div>
+        <div class="btm-nav" id="bottom-bar">
+          <button class="active border-pink-600 bg-pink-200 text-pink-600">
+            <span class="btm-nav-label">Map</span>
+          </button>
+          <button class="bg-pink-200 text-pink-600">
+            <span class="btm-nav-label">Route</span>
+          </button>
+          <button class="bg-pink-200 text-pink-600">
+            <span class="btm-nav-label">Options</span>
+          </button>
+        </div>
+      </div>
     </div>
     <script type="module" src="/src/main.mts"></script>
   </body>
