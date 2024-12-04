@@ -12,4 +12,18 @@ bottomBar.addEventListener("click", (event) => {
   }
   target.classList.add("active")
   target.classList.add("border-pink-600")
+
+  const activeScreen = document.querySelector("#active-screen")
+  const nextScreen = document.querySelector(
+    `[data-screen="${target.innerText.toLowerCase()}"]`
+  )
+  if (!nextScreen) {
+    throw new Error(`No screen found for ${target.innerText}`)
+  }
+  if (activeScreen) {
+    activeScreen.id = ""
+  } else {
+    console.warn("No active screen to deactivate")
+  }
+  nextScreen.id = "active-screen"
 })
