@@ -1,4 +1,4 @@
 #main-map {
-  height: 90vh;
+  height: calc(100dvh - 4rem);
   width: 100%;
 }
