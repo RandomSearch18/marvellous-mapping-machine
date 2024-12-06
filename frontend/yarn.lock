@@ -612,6 +612,11 @@ hasown@^2.0.2:
   dependencies:
     function-bind "^1.1.2"
 
+htm@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/htm/-/htm-3.1.1.tgz#49266582be0dc66ed2235d5ea892307cc0c24b78"
+  integrity sha512-983Vyg8NwUE7JkZ6NmOqpCZ+sh1bKv2iYTlUkzlWmA5JD2acKoxd4KVxbMmxX/85mtfdnDmTFoNKcg5DGAvxNQ==
+
 is-binary-path@~2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/is-binary-path/-/is-binary-path-2.1.0.tgz#ea1f7f3b80f064236e83470f86c09c254fb45b09"
@@ -765,6 +770,11 @@ object-hash@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/object-hash/-/object-hash-3.0.0.tgz#73f97f753e7baffc0e2cc9d6e079079744ac82e9"
   integrity sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==
+
+oby@^15.1.1:
+  version "15.1.2"
+  resolved "https://registry.yarnpkg.com/oby/-/oby-15.1.2.tgz#c960a0eeff10a1c87f67ce658d32ac349ac83fb4"
+  integrity sha512-6QD9iEoPzV+pMDdcg3RtFWhgDX8pS5hZouVHvgXGDy3Q9RxFfnI3CYv9i62keeuX+qk6iN2z5E9FD3q3OckZ6A==
 
 package-json-from-dist@^1.0.0:
   version "1.0.1"
@@ -1107,6 +1117,19 @@ vite@^5.4.10:
     rollup "^4.20.0"
   optionalDependencies:
     fsevents "~2.3.3"
+
+voby-vite@^1.2.5:
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/voby-vite/-/voby-vite-1.2.5.tgz#0423388d4f7d8d37f3b97a1f3486f9008badd416"
+  integrity sha512-kaqsjv5UUtNL8rYW2B9dsqbkglaQuHR1p+JIJ+PoJ8A3ZhvqhXDcaKqHzOd3mvuFw3ll9ogY1nm0g3VH5QtsUg==
+
+voby@^0.58.1:
+  version "0.58.1"
+  resolved "https://registry.yarnpkg.com/voby/-/voby-0.58.1.tgz#dc1392e243b8f5b95d66ba0b9ab76a7a2654e01b"
+  integrity sha512-kKHgUbIJXAMYbJASmQJ+4K/0BV5kgz2OzEOn+rs+Vbv1xMfJ1eh6tJoOo5fdO3pXfTBm/RkoTMEBj8f4fjA7pA==
+  dependencies:
+    htm "^3.1.1"
+    oby "^15.1.1"
 
 which@^2.0.1:
   version "2.0.2"
