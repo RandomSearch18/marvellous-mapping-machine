@@ -1,8 +1,8 @@
+import xml.etree.ElementTree
 import networkx
 import osmnx.convert
 import osmnx.graph
-
-from backend.osm_data_types import Coordinates
+from osm_data_types import Coordinates
 
 
 class RoutingGraph:

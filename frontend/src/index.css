@@ -20,3 +20,7 @@
   --tw-bg-opacity: 1;
   background-color: var(--fallback-su, oklch(var(--su) / var(--tw-bg-opacity)));
 }
+
+#app {
+  /* --p: 2 0.1 0.9; */
+}

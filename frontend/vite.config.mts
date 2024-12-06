@@ -9,7 +9,12 @@ const config = defineConfig ({
         filter: /\.(jsx|tsx)$/
       }
     })
-  ]
+  ],
+  server: {
+    fs: {
+      strict: false,
+    },
+  },
 });
 
 export default config; 
