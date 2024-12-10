@@ -1,3 +1,5 @@
+import BottomBar from "./BottomBar"
+
 function App() {
   return (
     <>
@@ -28,17 +30,7 @@ function App() {
             Options screen!
           </div>
         </div>
-        <div class="btm-nav" id="bottom-bar">
-          <button class="active border-t-4 border-pink-800 bg-pink-200 text-pink-800">
-            <span class="btm-nav-label">Map</span>
-          </button>
-          <button class="bg-pink-100 text-pink-800">
-            <span class="btm-nav-label">Route</span>
-          </button>
-          <button class="bg-pink-100 text-pink-800">
-            <span class="btm-nav-label">Options</span>
-          </button>
-        </div>
+        <BottomBar />
       </div>
     </>
   )
