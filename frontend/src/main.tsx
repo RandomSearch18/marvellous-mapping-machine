@@ -12,4 +12,4 @@ if (!appElement) {
 
 console.log("main.tsx loaded")
 
-render(<App />, appElement)
+// render(<App />, appElement)
