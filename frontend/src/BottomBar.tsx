@@ -1,3 +1,5 @@
+import { $, For } from "voby"
+
 function BottomBar() {
   function onClick(event: MouseEvent) {
     const eventTarget = event.target as HTMLElement
@@ -39,18 +41,39 @@ function BottomBar() {
     nextScreen.id = "active-screen"
   }
 
+  const bottomBarButtons = Object.fromEntries(
+    ["Map", "Route", "Options"].map((name) => [name, $(false)])
+  )
+
+  // Map is the default view
+  bottomBarButtons["Map"](true)
+
   return (
     <div class="btm-nav" id="bottom-bar" onClick={onClick}>
-      <button class="active border-t-4 border-pink-800 bg-pink-200 text-pink-800">
-        <span class="btm-nav-label">Map</span>
-      </button>
-      <button class="bg-pink-100 text-pink-800">
-        <span class="btm-nav-label">Route</span>
-      </button>
-      <button class="bg-pink-100 text-pink-800">
-        <span class="btm-nav-label">Options</span>
-      </button>
+      <For values={Object.entries(bottomBarButtons)}>
+        {([name, active]) => <BottomBarButton active={active} name={name} />}
+      </For>
     </div>
+  )
+}
+
+function BottomBarButton({
+  active,
+  name,
+}: {
+  active: () => boolean
+  name: string
+}) {
+  return (
+    <button
+      class={() =>
+        active()
+          ? "active border-t-4 border-pink-800 bg-pink-200 text-pink-800"
+          : "bg-pink-100 text-pink-800"
+      }
+    >
+      <span class="btm-nav-label">{name}</span>
+    </button>
   )
 }
 
