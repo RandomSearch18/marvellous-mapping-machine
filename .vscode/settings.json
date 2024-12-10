@@ -1,4 +1,4 @@
 {
   "python.analysis.typeCheckingMode": "standard",
-  "cSpell.words": ["osmnx"]
+  "cSpell.words": ["osmnx", "voby"]
 }
