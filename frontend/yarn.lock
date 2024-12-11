@@ -297,6 +297,18 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-1.0.6.tgz#628effeeae2064a1b4e79f78e81d87b7e5fc7b50"
   integrity sha512-AYnb1nQyY49te+VRAVgmzfcgjYS91mY5P0TKUDCLEM+gNnA+3T6rWITXRLYCpahpqSQbN5cE+gHpnPyXjHWxcw==
 
+"@types/geojson@*":
+  version "7946.0.15"
+  resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.15.tgz#f9d55fd5a0aa2de9dc80b1b04e437538b7298868"
+  integrity sha512-9oSxFzDCT2Rj6DfcHF8G++jxBKS7mBqXl5xrRW+Kbvjry6Uduya2iiwqHPhVXpasAVMBYKkEPGgKhd3+/HZ6xA==
+
+"@types/leaflet@^1.9.14":
+  version "1.9.15"
+  resolved "https://registry.yarnpkg.com/@types/leaflet/-/leaflet-1.9.15.tgz#5054d3cfe115da79bffb7a3a70acc6b310bd7c60"
+  integrity sha512-7UuggAuAs+mva66gtf2OTB1nEhzU/9JED93TIaOEgvFMvG/dIGQaukHE7izHo1Zd+Ko1L4ETUw7TBc8yUxevpg==
+  dependencies:
+    "@types/geojson" "*"
+
 ansi-regex@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-5.0.1.tgz#082cb2c89c9fe8659a311a53bd6a4dc5301db304"
@@ -612,6 +624,11 @@ hasown@^2.0.2:
   dependencies:
     function-bind "^1.1.2"
 
+htm@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/htm/-/htm-3.1.1.tgz#49266582be0dc66ed2235d5ea892307cc0c24b78"
+  integrity sha512-983Vyg8NwUE7JkZ6NmOqpCZ+sh1bKv2iYTlUkzlWmA5JD2acKoxd4KVxbMmxX/85mtfdnDmTFoNKcg5DGAvxNQ==
+
 is-binary-path@~2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/is-binary-path/-/is-binary-path-2.1.0.tgz#ea1f7f3b80f064236e83470f86c09c254fb45b09"
@@ -666,6 +683,11 @@ jiti@^1.21.0:
   version "1.21.6"
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.6.tgz#6c7f7398dd4b3142767f9a168af2f317a428d268"
   integrity sha512-2yTgeWTWzMWkHu6Jp9NKgePDaYHbntiwvYuuJLbbN9vl7DC9DvXKOB2BC3ZZ92D3cvV/aflH0osDfwpHepQ53w==
+
+leaflet@^1.9.4:
+  version "1.9.4"
+  resolved "https://registry.yarnpkg.com/leaflet/-/leaflet-1.9.4.tgz#23fae724e282fa25745aff82ca4d394748db7d8d"
+  integrity sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA==
 
 lilconfig@^2.1.0:
   version "2.1.0"
@@ -765,6 +787,11 @@ object-hash@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/object-hash/-/object-hash-3.0.0.tgz#73f97f753e7baffc0e2cc9d6e079079744ac82e9"
   integrity sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==
+
+oby@^15.1.1:
+  version "15.1.2"
+  resolved "https://registry.yarnpkg.com/oby/-/oby-15.1.2.tgz#c960a0eeff10a1c87f67ce658d32ac349ac83fb4"
+  integrity sha512-6QD9iEoPzV+pMDdcg3RtFWhgDX8pS5hZouVHvgXGDy3Q9RxFfnI3CYv9i62keeuX+qk6iN2z5E9FD3q3OckZ6A==
 
 package-json-from-dist@^1.0.0:
   version "1.0.1"
@@ -1107,6 +1134,19 @@ vite@^5.4.10:
     rollup "^4.20.0"
   optionalDependencies:
     fsevents "~2.3.3"
+
+voby-vite@^1.2.5:
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/voby-vite/-/voby-vite-1.2.5.tgz#0423388d4f7d8d37f3b97a1f3486f9008badd416"
+  integrity sha512-kaqsjv5UUtNL8rYW2B9dsqbkglaQuHR1p+JIJ+PoJ8A3ZhvqhXDcaKqHzOd3mvuFw3ll9ogY1nm0g3VH5QtsUg==
+
+voby@^0.58.1:
+  version "0.58.1"
+  resolved "https://registry.yarnpkg.com/voby/-/voby-0.58.1.tgz#dc1392e243b8f5b95d66ba0b9ab76a7a2654e01b"
+  integrity sha512-kKHgUbIJXAMYbJASmQJ+4K/0BV5kgz2OzEOn+rs+Vbv1xMfJ1eh6tJoOo5fdO3pXfTBm/RkoTMEBj8f4fjA7pA==
+  dependencies:
+    htm "^3.1.1"
+    oby "^15.1.1"
 
 which@^2.0.1:
   version "2.0.2"
