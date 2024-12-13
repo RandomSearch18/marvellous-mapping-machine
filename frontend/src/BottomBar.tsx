@@ -13,6 +13,8 @@ function BottomBar() {
     activeScreen(screenName)
   }
 
+  // A map of botton names to observables representing their active state
+  // Automatically updated when the `activeScreen` observable changes
   const bottomBarButtons = Object.fromEntries(
     ["Map", "Route", "Options"].map((name) => [name, $(false)])
   )
