@@ -1,4 +1,4 @@
-import { $, For, useEffect } from "voby"
+import { $, For, useEffect, useMemo } from "voby"
 
 function BottomBar() {
   function onClick(event: MouseEvent) {
@@ -13,20 +13,18 @@ function BottomBar() {
     activeScreen(screenName)
   }
 
-  // A map of botton names to observables representing their active state
-  // Automatically updated when the `activeScreen` observable changes
-  const bottomBarButtons = Object.fromEntries(
-    ["Map", "Route", "Options"].map((name) => [name, $(false)])
-  )
+  // Source of truth for the current active screen. "Map" is the default screen.
   const activeScreen = $("Map")
+  // A map of botton names to observables representing their active state
+  const bottomBarButtons = Object.fromEntries(
+    ["Map", "Route", "Options"].map((name) => [
+      name,
+      useMemo(() => activeScreen() === name),
+    ])
+  )
   useEffect(() => {
     // This is a handler function for when the active screen changes
     const newActiveScreen = activeScreen()
-
-    // Update the bottom bar buttons (specifically their active state)
-    for (const [name, button] of Object.entries(bottomBarButtons)) {
-      button(name === newActiveScreen)
-    }
 
     // Make the new active screen visible and hide the old one
     const oldScreenElement = document.querySelector("#active-screen")
@@ -43,9 +41,6 @@ function BottomBar() {
     }
     newScreenElement.id = "active-screen"
   })
-
-  // Map is the default view
-  activeScreen("Map")
 
   return (
     <div class="btm-nav" id="bottom-bar" onClick={onClick}>
