@@ -9,5 +9,5 @@ if (!appElement) {
 
 render(<App />, appElement)
 
-import("./showCurrentLocation.mjs")
-import("./mainMap.mjs")
+import("./MainMap.jsx")
+// import("./showCurrentLocation.mjs")
