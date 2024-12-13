@@ -8,6 +8,3 @@ if (!appElement) {
 }
 
 render(<App />, appElement)
-
-import("./MainMap.jsx")
-// import("./showCurrentLocation.mjs")
