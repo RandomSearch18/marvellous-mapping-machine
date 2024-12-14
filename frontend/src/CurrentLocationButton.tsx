@@ -1,6 +1,6 @@
 import type { Circle } from "leaflet"
 import { leaflet, mainMap } from "./MainMap.jsx"
-import { useEffect } from "voby"
+import { useEffect, useMemo } from "voby"
 
 let locationMarker: Circle | null = null
 let locationCircle: Circle | null = null
@@ -35,9 +35,15 @@ useEffect(() => {
 })
 
 function CurrentLocationButton() {
+  const tooltip = useMemo(() => {
+    const tip = "Show current location"
+    if (!mainMap()) return `${tip} (unavailable while map is loading)`
+    return tip
+  })
+
   return (
     <div class="fixed bottom-[6rem] right-2 z-[1000]">
-      <div class="tooltip tooltip-left" data-tip="Show current location">
+      <div class="tooltip tooltip-left" data-tip={tooltip}>
         <button
           class="btn btn-square btn-md btn-primary text-2xl"
           id="show-location"
