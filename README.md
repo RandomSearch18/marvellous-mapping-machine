@@ -20,7 +20,7 @@ Create a virtual environment. For example, on a personal computer running Linux,
 python3 -m venv .venv
 ```
 
-If you're on a school computer, you can't create a venv in your `:H` drive, so create it on the `C:` drive. E.g. in Git Bash:
+If you're on a school computer, you can't create a venv in your `H:` drive, so create it somewhere on the `C:` drive. E.g. in Git Bash:
 
 ```bash
 py -m venv "$USERPROFILE/venvs/marvellous-mapping-machine"
