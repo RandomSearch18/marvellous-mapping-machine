@@ -1,9 +1,9 @@
-import leaflet from "leaflet"
-import { mainMap } from "./MainMap.jsx"
-import { useEffect } from "voby"
+import type { Circle } from "leaflet"
+import { leaflet, mainMap } from "./MainMap.jsx"
+import { useEffect, useMemo } from "voby"
 
-let locationMarker: leaflet.Circle | null = null
-let locationCircle: leaflet.Circle | null = null
+let locationMarker: Circle | null = null
+let locationCircle: Circle | null = null
 
 function cleanupMarkers() {
   if (locationMarker) locationMarker.remove()
@@ -11,23 +11,20 @@ function cleanupMarkers() {
 }
 
 useEffect(() => {
+  const L = leaflet()
   const map = mainMap()
-  if (!map) return
+  if (!map || !L) return
 
   map.on("locationfound", (event) => {
     cleanupMarkers()
     const radius = event.accuracy / 2
-    locationMarker = leaflet
-      .circle(event.latlng, {
-        radius: Math.min(20, radius),
-        fillOpacity: 1,
-      })
-      .addTo(map)
-    locationCircle = leaflet
-      .circle(event.latlng, {
-        radius,
-      })
-      .addTo(map)
+    locationMarker = L.circle(event.latlng, {
+      radius: Math.min(20, radius),
+      fillOpacity: 1,
+    }).addTo(map)
+    locationCircle = L.circle(event.latlng, {
+      radius,
+    }).addTo(map)
     console.debug("Location found", event)
   })
 
@@ -38,9 +35,15 @@ useEffect(() => {
 })
 
 function CurrentLocationButton() {
+  const tooltip = useMemo(() => {
+    const tip = "Show current location"
+    if (!mainMap()) return `${tip} (unavailable while map is loading)`
+    return tip
+  })
+
   return (
     <div class="fixed bottom-[6rem] right-2 z-[1000]">
-      <div class="tooltip tooltip-left" data-tip="Show current location">
+      <div class="tooltip tooltip-left" data-tip={tooltip}>
         <button
           class="btn btn-square btn-md btn-primary text-2xl"
           id="show-location"

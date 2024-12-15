@@ -1,17 +1,24 @@
-import leaflet from "leaflet"
+import type { Map } from "leaflet"
 import { $, useEffect } from "voby"
 
-export const mainMap = $<leaflet.Map>()
+export const leaflet = $<typeof import("leaflet")>()
+export const mainMap = $<Map>()
+
+// We dynamically import the Leaflet library so that the UI rendering doesn't block on loading Leaflet
+import("leaflet").then(({ default: leafletImport }) => {
+  leaflet(leafletImport)
+})
 
 function MainMap() {
   // We initialise the map inside a useEffect() so that it only runs once the #main-map element is in the DOM
+  // Separately, using a  useEffect lets us run the code once the leaflet library has been loaded
   useEffect(() => {
-    const createdMap = leaflet.map("main-map").setView([51.27556, -0.37834], 15)
-    leaflet
-      .tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: `&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>`,
-      })
-      .addTo(createdMap)
+    const L = leaflet()
+    if (!L) return
+    const createdMap = L.map("main-map").setView([51.27556, -0.37834], 15)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: `&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>`,
+    }).addTo(createdMap)
     mainMap(createdMap)
   })
 
