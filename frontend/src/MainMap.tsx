@@ -11,7 +11,7 @@ import("leaflet").then(({ default: leafletImport }) => {
 
 function MainMap() {
   // We initialise the map inside a useEffect() so that it only runs once the #main-map element is in the DOM
-  // Separately, using a  useEffect lets us run the code once the leaflet library has been loaded
+  // We _also_ use a useEffect lets us run the code once the leaflet library has been loaded
   useEffect(() => {
     const L = leaflet()
     if (!L) return
