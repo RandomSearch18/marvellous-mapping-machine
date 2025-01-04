@@ -8,9 +8,12 @@ class RoutingGraph:
         self.osm_data = None  # TODO
         self.graph = graph
 
-    def get_edge_from_way(self, way_id: int) -> tuple[OSMNode, OSMNode]:
-        # TODO
-        raise NotImplementedError
+    def get_edges_from_way(self, target_way_id: int) -> list[tuple[int, int]]:
+        edges = []
+        for node_a, node_b, way_id in self.graph.edges.data("id", default=0):  # type: ignore
+            if way_id == target_way_id:
+                edges.append((node_a, node_b))
+        return edges
 
 
 class RoutingOptions:
