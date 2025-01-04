@@ -29,6 +29,6 @@ class OSMWay(OSMElement):
 
 
 class OSMNode(OSMElement):
-    def __init__(self, pos: tuple[float, float], tags: dict):
+    def __init__(self, pos: Coordinates, tags: dict):
         super().__init__("node", tags)
         self.pos = (pos[0], pos[1])
