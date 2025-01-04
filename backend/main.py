@@ -1,5 +1,7 @@
 from pathlib import Path
 from sys import argv, stderr
+
+from networkx import astar_path
 from osm_data_types import BoundingBox
 from routing_engine import RoutingEngine
 import xml.etree.ElementTree
@@ -76,3 +78,6 @@ if __name__ == "__main__":
     )
     routing_graph = routing_engine.compute_graph(ways, raw_nodes)
     print(routing_graph)
+
+    path = astar_path(routing_graph.graph, 308801904, 3925856875)
+    print("maybe maybe maybe we have a routing engine:", path)

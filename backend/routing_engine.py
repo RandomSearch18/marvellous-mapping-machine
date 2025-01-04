@@ -1,6 +1,15 @@
 import networkx
 import requests
 from osm_data_types import BoundingBox, Coordinates, OSMNode, OSMWay
+from geographiclib.geodesic import Geodesic
+
+geodesic_wgs84: Geodesic = Geodesic.WGS84  # type: ignore
+
+
+def distance_between_points(a: Coordinates, b: Coordinates) -> float:
+    result = geodesic_wgs84.Inverse(a[0], a[1], b[0], b[1])
+    distance_meters = result["s12"]
+    return distance_meters
 
 
 class RoutingGraph:
@@ -82,7 +91,13 @@ class RoutingEngine:
             for i in range(len(way.nodes) - 1):
                 node_from = way.nodes[i]
                 node_to = way.nodes[i + 1]
-                graph.add_edge(node_from.id, node_to.id, tags=way.tags, id=way.id)
+                graph.add_edge(
+                    node_from.id,
+                    node_to.id,
+                    tags=way.tags,
+                    id=way.id,
+                    length=distance_between_points(node_from.pos, node_to.pos),
+                )
         tagged_nodes = {
             node_id: node for node_id, node in raw_nodes.items() if "tags" in node
         }
@@ -90,5 +105,4 @@ class RoutingEngine:
             if node in graph:
                 graph.nodes[node_id]["tags"] = node["tags"]
                 graph.nodes[node_id]["pos"] = (node["lat"], node["lon"])
-        print(graph.nodes(data=True))
         return RoutingGraph(graph)
