@@ -8,6 +8,10 @@ class RoutingGraph:
         self.osm_data = None  # TODO
         self.graph = graph
 
+    def get_edge_from_way(self, way_id: int) -> tuple[OSMNode, OSMNode]:
+        # TODO
+        raise NotImplementedError
+
 
 class RoutingOptions:
     pass
@@ -75,7 +79,7 @@ class RoutingEngine:
             for i in range(len(way.nodes) - 1):
                 node_from = way.nodes[i]
                 node_to = way.nodes[i + 1]
-                graph.add_edge(node_from.id, node_to.id, tags=way.tags)
+                graph.add_edge(node_from.id, node_to.id, tags=way.tags, id=way.id)
         tagged_nodes = {
             node_id: node for node_id, node in raw_nodes.items() if "tags" in node
         }
