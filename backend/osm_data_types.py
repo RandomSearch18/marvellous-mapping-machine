@@ -30,6 +30,7 @@ class OSMNode(OSMElement):
 
 
 class OSMWay(OSMElement):
-    def __init__(self, nodes: list[OSMNode], tags: dict):
+    def __init__(self, id: int, nodes: list[OSMNode], tags: dict):
         super().__init__("way", tags)
+        self.id = id
         self.nodes = nodes

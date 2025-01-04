@@ -64,7 +64,7 @@ class RoutingEngine:
                 nodes.append(
                     OSMNode(id=node_id, pos=(node["lat"], node["lon"]), tags=tags)
                 )
-            ways.append(OSMWay(nodes=nodes, tags=way["tags"]))
+            ways.append(OSMWay(id=way["id"], nodes=nodes, tags=way["tags"]))
         return ways, raw_nodes
 
     def compute_graph(
