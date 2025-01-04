@@ -1,6 +1,4 @@
 import networkx
-import osmnx.convert
-import osmnx.graph
 import requests
 from osm_data_types import BoundingBox, Coordinates, OSMNode, OSMWay
 
@@ -67,8 +65,21 @@ class RoutingEngine:
             ways.append(OSMWay(nodes=nodes, tags=way["tags"]))
         return ways, raw_nodes
 
-    def compute_graph(self, map_data_path: str) -> RoutingGraph:
-        # Use OSMnx to parse the map data and create a graph
-        directed_graph = osmnx.graph.graph_from_xml(map_data_path, bidirectional=True)
-        undirected_graph = osmnx.convert.to_undirected(directed_graph)
-        return RoutingGraph(undirected_graph)
+    def compute_graph(
+        self, ways: list[OSMWay], raw_nodes: dict[int, dict]
+    ) -> RoutingGraph:
+        graph = networkx.Graph()
+        for way in ways:
+            for i in range(len(way.nodes) - 1):
+                node_from = way.nodes[i]
+                node_to = way.nodes[i + 1]
+                graph.add_edge(node_from, node_to, tags=way.tags)
+        tagged_nodes = {
+            node_id: node for node_id, node in raw_nodes.items() if "tags" in node
+        }
+        for node_id, node in tagged_nodes.items():
+            if node in graph:
+                graph.nodes[node_id]["tags"] = node["tags"]
+                graph.nodes[node_id]["pos"] = (node["lat"], node["lon"])
+        print(graph.nodes(data=True))
+        return RoutingGraph(graph)

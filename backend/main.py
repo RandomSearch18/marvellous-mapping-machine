@@ -71,7 +71,8 @@ if __name__ == "__main__":
     # except xml.etree.ElementTree.ParseError as error:
     #     print_error(f"Failed to parse OSM data")
     #     print_error(f"Invalid XML: {error}")
-    data = routing_engine.download_osm_data(
+    ways, raw_nodes = routing_engine.download_osm_data(
         BoundingBox(51.26268, -0.41497, 51.27914, -0.36755)
     )
-    print(data)
+    routing_graph = routing_engine.compute_graph(ways, raw_nodes)
+    print(routing_graph)
