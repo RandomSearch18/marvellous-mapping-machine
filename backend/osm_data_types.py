@@ -22,13 +22,14 @@ class OSMElement:
         self.tags = tags
 
 
+class OSMNode(OSMElement):
+    def __init__(self, id: int, pos: Coordinates, tags: dict):
+        super().__init__("node", tags)
+        self.id = id
+        self.pos = (pos[0], pos[1])
+
+
 class OSMWay(OSMElement):
-    def __init__(self, nodes: list[dict], tags: dict):
+    def __init__(self, nodes: list[OSMNode], tags: dict):
         super().__init__("way", tags)
         self.nodes = nodes
-
-
-class OSMNode(OSMElement):
-    def __init__(self, pos: Coordinates, tags: dict):
-        super().__init__("node", tags)
-        self.pos = (pos[0], pos[1])

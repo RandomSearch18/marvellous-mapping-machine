@@ -61,7 +61,9 @@ class RoutingEngine:
             for node_id in way["nodes"]:
                 node: dict = raw_nodes[node_id]
                 tags = node.get("tags", {})
-                nodes.append(OSMNode(pos=(node["lat"], node["lon"]), tags=tags))
+                nodes.append(
+                    OSMNode(id=node_id, pos=(node["lat"], node["lon"]), tags=tags)
+                )
             ways.append(OSMWay(nodes=nodes, tags=way["tags"]))
         return ways, raw_nodes
 
@@ -73,7 +75,7 @@ class RoutingEngine:
             for i in range(len(way.nodes) - 1):
                 node_from = way.nodes[i]
                 node_to = way.nodes[i + 1]
-                graph.add_edge(node_from, node_to, tags=way.tags)
+                graph.add_edge(node_from.id, node_to.id, tags=way.tags)
         tagged_nodes = {
             node_id: node for node_id, node in raw_nodes.items() if "tags" in node
         }
