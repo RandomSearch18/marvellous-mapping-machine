@@ -25,11 +25,11 @@ def euclidean_distance(a: Coordinates, b: Coordinates) -> float:
 class RoutingGraph:
     def __init__(self, graph: networkx.Graph):
         self.osm_data = None  # TODO
-        self.graph = graph
+        self._graph = graph
 
     def get_edges_from_way(self, target_way_id: int) -> list[tuple[int, int]]:
         edges = []
-        for node_a, node_b, way_id in self.graph.edges.data("id", default=0):  # type: ignore
+        for node_a, node_b, way_id in self._graph.edges.data("id", default=0):  # type: ignore
             if way_id == target_way_id:
                 edges.append((node_a, node_b))
         return edges
@@ -37,8 +37,8 @@ class RoutingGraph:
     def nearest_node(self, coordinates: Coordinates) -> int:
         nearest_node = None
         nearest_distance = float("inf")
-        for node_id in self.graph.nodes():
-            node_coordinates = self.graph.nodes[node_id]["pos"]
+        for node_id in self._graph.nodes():
+            node_coordinates = self.node_position(node_id)
             distance = distance_between_points(coordinates, node_coordinates)
             if distance < nearest_distance:
                 nearest_distance = distance
@@ -50,13 +50,13 @@ class RoutingGraph:
     def get_edge_between_nodes(self, node_a: int, node_b: int) -> dict:
         # Here we're assuming that there aren't any ways (therefore edges) that share the same two consecutive nodes!
         # This won't always be the case, but I'm not sure how to handle that edge case...
-        return self.graph.edges[node_a, node_b]
+        return self._graph.edges[node_a, node_b]
 
     def node(self, node_id: int) -> dict:
-        return self.graph.nodes[node_id]
+        return self._graph.nodes[node_id]
 
     def node_position(self, node_id: int) -> Coordinates:
-        return self.graph.nodes[node_id]["pos"]
+        return self._graph.nodes[node_id]["pos"]
 
 
 class RoutingOptions:
@@ -90,8 +90,7 @@ class RouteCalculator:
         # maybe this can be refined in the future, maybe it won't be
         def heuristic(node_from, node_to):
             return euclidean_distance(
-                self.graph.graph.nodes[node_from]["pos"],
-                self.graph.graph.nodes[node_to]["pos"],
+                self.graph.node_position(node_from), self.graph.node_position(node_to)
             )
 
         # So that we're not passing class methods around as callbacks:
@@ -100,7 +99,7 @@ class RouteCalculator:
 
         # Perform find the most optimal route using NetworkX's A* algorithm
         nodes: list[int] = networkx.astar.astar_path(
-            self.graph.graph,
+            self.graph._graph,
             start_node,
             end_node,
             heuristic=heuristic,
