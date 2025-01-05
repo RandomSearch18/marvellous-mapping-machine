@@ -1,5 +1,6 @@
 import networkx
 import requests
+from route_result import Arrive, RoutePart, RouteProgression, RouteResult, StartWalking
 from osm_data_types import BoundingBox, Coordinates, OSMNode, OSMWay
 from geographiclib.geodesic import Geodesic
 
@@ -46,15 +47,20 @@ class RoutingGraph:
             raise ValueError("No nodes could be found")
         return nearest_node
 
+    def get_edge_between_nodes(self, node_a: int, node_b: int) -> dict:
+        # Here we're assuming that there aren't any ways (therefore edges) that share the same two consecutive nodes!
+        # This won't always be the case, but I'm not sure how to handle that edge case...
+        return self.graph.edges[node_a, node_b]
+
+    def node(self, node_id: int) -> dict:
+        return self.graph.nodes[node_id]
+
+    def node_position(self, node_id: int) -> Coordinates:
+        return self.graph.nodes[node_id]["pos"]
+
 
 class RoutingOptions:
     pass
-
-
-class RouteResult:
-    # TODO
-    def __init__(self):
-        raise NotImplementedError
 
 
 class RouteCalculator:
@@ -66,11 +72,19 @@ class RouteCalculator:
         # TODO: do
         return float(data["length"])
 
+    def estimate_time(self, way_data: dict) -> float:
+        # Based on my average walking speed of 3.3 km/h
+        # TODO this should be an option!
+        BASE_SPEED = 0.92  # meters per second
+        distance = way_data["length"]
+        # TODO we should take into account way attributes, obviously
+        return distance / BASE_SPEED
+
     def calculate_route_a_star(
-        self, start: Coordinates, end: Coordinates
+        self, start_pos: Coordinates, end_pos: Coordinates
     ) -> RouteResult:
-        start_node = self.graph.nearest_node(start)
-        end_node = self.graph.nearest_node(end)
+        start_node = self.graph.nearest_node(start_pos)
+        end_node = self.graph.nearest_node(end_pos)
 
         # Use a very simple heuristic of pretending that the coordinates are cartesian and using Euclidean distance
         # maybe this can be refined in the future, maybe it won't be
@@ -84,6 +98,7 @@ class RouteCalculator:
         def weight(node_from, node_to, data):
             return self.calculate_weight(node_from, node_to, data)
 
+        # Perform find the most optimal route using NetworkX's A* algorithm
         nodes: list[int] = networkx.astar.astar_path(
             self.graph.graph,
             start_node,
@@ -94,6 +109,22 @@ class RouteCalculator:
 
         for node in nodes:
             print(f"https://www.openstreetmap.org/node/{node}")
+
+        # Reconstruct the route, to get a list of RouteParts
+        parts: list[RoutePart] = []
+        parts.append(StartWalking(self.graph.node_position(start_node)))
+        for i in range(1, len(nodes)):
+            node_from = nodes[i - 1]
+            node_to = nodes[i]
+            # Find the edge that we're routing along.
+            # This gets a bit weird when there are multiple edges between the same two nodes,
+            # but I'm ignoring that possibility for now
+            edge_data = self.graph.get_edge_between_nodes(node_from, node_to)
+            distance = edge_data["length"]
+            estimated_time = self.estimate_time(edge_data)
+            parts.append(RouteProgression(distance, estimated_time))
+        parts.append(Arrive(self.graph.node_position(end_node)))
+        return RouteResult(start_pos, end_pos, parts)
 
 
 class RoutingEngine:
