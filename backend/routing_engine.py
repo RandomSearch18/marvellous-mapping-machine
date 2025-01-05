@@ -121,7 +121,14 @@ class RouteCalculator:
             edge_data = self.graph.get_edge_between_nodes(node_from, node_to)
             distance = edge_data["length"]
             estimated_time = self.estimate_time(edge_data)
-            parts.append(RouteProgression(distance, estimated_time))
+            parts.append(
+                RouteProgression(
+                    distance,
+                    estimated_time,
+                    start=self.graph.node_position(node_from),
+                    end=self.graph.node_position(node_to),
+                )
+            )
         parts.append(Arrive(self.graph.node_position(end_node)))
         return RouteResult(start_pos, end_pos, parts)
 

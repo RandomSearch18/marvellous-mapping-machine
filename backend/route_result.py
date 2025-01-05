@@ -13,8 +13,16 @@ class RoutePart(abc.ABC):
 
 
 class RouteProgression(RoutePart):
-    def __init__(self, distance: float, estimated_time: float):
+    def __init__(
+        self,
+        distance: float,
+        estimated_time: float,
+        start: Coordinates,
+        end: Coordinates,
+    ):
         super().__init__(distance, estimated_time)
+        self.start = start
+        self.end = end
 
     def description(self) -> str:
         return f"Walk {self.distance:.2f} meters ({self.estimated_time:.2f} s)"

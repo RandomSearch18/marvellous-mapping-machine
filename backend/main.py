@@ -84,3 +84,4 @@ if __name__ == "__main__":
     start = 51.273330, -0.397460
     end = 51.274179, -0.391324
     route = calculator.calculate_route_a_star(start, end)
+    print(route)
