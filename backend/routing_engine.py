@@ -12,6 +12,15 @@ def distance_between_points(a: Coordinates, b: Coordinates) -> float:
     return distance_meters
 
 
+def euclidean_distance(a: Coordinates, b: Coordinates) -> float:
+    """Euclidean distance for two sets of coordinates.
+
+    - Doesn't really make sense in terms of points on Earth, but it's useful as a simple heuristic
+    - Units: none really, the outputs only make sense relative to each other
+    """
+    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+
+
 class RoutingGraph:
     def __init__(self, graph: networkx.Graph):
         self.osm_data = None  # TODO
@@ -23,6 +32,19 @@ class RoutingGraph:
             if way_id == target_way_id:
                 edges.append((node_a, node_b))
         return edges
+
+    def nearest_node(self, coordinates: Coordinates) -> int:
+        nearest_node = None
+        nearest_distance = float("inf")
+        for node_id in self.graph.nodes():
+            node_coordinates = self.graph.nodes[node_id]["pos"]
+            distance = distance_between_points(coordinates, node_coordinates)
+            if distance < nearest_distance:
+                nearest_distance = distance
+                nearest_node = node_id
+        if nearest_node is None:
+            raise ValueError("No nodes could be found")
+        return nearest_node
 
 
 class RoutingOptions:
@@ -40,9 +62,38 @@ class RouteCalculator:
         self.graph = graph
         self.options = options
 
-    def calculate_route(self, start: Coordinates, end: Coordinates) -> RouteResult:
-        # TODO
-        raise NotImplementedError
+    def calculate_weight(self, node_a: int, node_b: int, data: dict[str, str]) -> float:
+        # TODO: do
+        return float(data["length"])
+
+    def calculate_route_a_star(
+        self, start: Coordinates, end: Coordinates
+    ) -> RouteResult:
+        start_node = self.graph.nearest_node(start)
+        end_node = self.graph.nearest_node(end)
+
+        # Use a very simple heuristic of pretending that the coordinates are cartesian and using Euclidean distance
+        # maybe this can be refined in the future, maybe it won't be
+        def heuristic(node_from, node_to):
+            return euclidean_distance(
+                self.graph.graph.nodes[node_from]["pos"],
+                self.graph.graph.nodes[node_to]["pos"],
+            )
+
+        # So that we're not passing class methods around as callbacks:
+        def weight(node_from, node_to, data):
+            return self.calculate_weight(node_from, node_to, data)
+
+        nodes: list[int] = networkx.astar.astar_path(
+            self.graph.graph,
+            start_node,
+            end_node,
+            heuristic=heuristic,
+            weight=weight,  # type: ignore
+        )
+
+        for node in nodes:
+            print(f"https://www.openstreetmap.org/node/{node}")
 
 
 class RoutingEngine:
@@ -98,11 +149,9 @@ class RoutingEngine:
                     id=way.id,
                     length=distance_between_points(node_from.pos, node_to.pos),
                 )
-        tagged_nodes = {
-            node_id: node for node_id, node in raw_nodes.items() if "tags" in node
-        }
-        for node_id, node in tagged_nodes.items():
-            if node in graph:
-                graph.nodes[node_id]["tags"] = node["tags"]
+        for node_id, node in raw_nodes.items():
+            if node["id"] in graph.nodes:
                 graph.nodes[node_id]["pos"] = (node["lat"], node["lon"])
+                if "tags" in node:
+                    graph.nodes[node_id]["tags"] = node["tags"]
         return RoutingGraph(graph)
