@@ -13,6 +13,9 @@ dist
 dist-ssr
 *.local
 
+# Copied by the build tool (Vite)
+frontend/public/backend
+
 # Python stuff
 .venv
 __pycache__

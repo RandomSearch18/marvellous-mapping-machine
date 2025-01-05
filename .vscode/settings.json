@@ -1,4 +1,12 @@
 {
   "python.analysis.typeCheckingMode": "standard",
-  "cSpell.words": ["astar", "footway", "geographiclib", "osmnx", "voby"]
+  "cSpell.words": [
+    "astar",
+    "footway",
+    "geographiclib",
+    "networkx",
+    "osmnx",
+    "pyscript",
+    "voby"
+  ]
 }
