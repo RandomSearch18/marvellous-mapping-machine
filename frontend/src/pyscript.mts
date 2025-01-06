@@ -3,5 +3,5 @@ export async function initPyScript() {
     // @ts-ignore - No types for PyScript :(
     "../node_modules/@pyscript/core/dist/core.js"
   )
-  console.debug("PyScript downloaded and imported", pyscriptImport)
+  console.debug("PyScript downloaded", pyscriptImport)
 }

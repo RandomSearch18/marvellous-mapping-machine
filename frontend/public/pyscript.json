@@ -1,3 +1,8 @@
 {
-  "packages": ["networkx"]
+  "packages": ["networkx", "requests", "geographiclib"],
+  "files": {
+    "backend/osm_data_types.py": "./osm_data_types.py",
+    "backend/route_result.py": "./route_result.py",
+    "backend/routing_engine.py": "./routing_engine.py"
+  }
 }
