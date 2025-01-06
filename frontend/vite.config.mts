@@ -14,6 +14,11 @@ const config = defineConfig({
     fs: {
       strict: false,
     },
+    headers: {
+      // So that web workers can work, as per https://docs.pyscript.net/2024.11.1//user-guide/workers#http-headers
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "credentialless",
+    },
   },
   assetsInclude: ["../backend/**/*.py"],
 })
