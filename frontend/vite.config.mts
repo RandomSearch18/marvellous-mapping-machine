@@ -4,7 +4,7 @@ import voby from "voby-vite"
 const config = defineConfig({
   build: {
     target: "esnext",
-  }
+  },
   plugins: [
     voby({
       hmr: {
