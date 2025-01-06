@@ -16,7 +16,7 @@ function MainMap() {
     const L = leaflet()
     if (!L) return
     const createdMap = L.map("main-map").setView([51.27556, -0.37834], 15)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://c.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: `&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>`,
     }).addTo(createdMap)
     mainMap(createdMap)
