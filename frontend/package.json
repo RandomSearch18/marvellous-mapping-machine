@@ -6,20 +6,24 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predev": "cp -r ../backend ./public",
+    "prebuild": "cp -r ../backend ./public"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.15",
+    "@types/leaflet": "^1.9.14",
     "autoprefixer": "^10.4.20",
+    "daisyui": "^4.12.14",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.14",
     "typescript": "~5.6.2",
     "vite": "^5.4.10",
-    "voby-vite": "^1.2.5",
-    "daisyui": "^4.12.14",
-    "@types/leaflet": "^1.9.14"
+    "vite-plugin-pwa": "^0.21.1",
+    "voby-vite": "^1.2.5"
   },
   "dependencies": {
+    "@pyscript/core": "^0.6.24",
     "leaflet": "^1.9.4",
     "voby": "^0.58.1"
   },

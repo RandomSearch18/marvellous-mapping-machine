@@ -54,34 +54,34 @@ def validate_file_is_readable(file_path: str):
         return False
 
 
-if __name__ == "__main__":
-    # Check that we've been provided with a data file that we can read
-    # if not validate_args():
-    #     exit(1)
-    # data_file_path = get_data_file_path()
-    # if not validate_file_is_readable(data_file_path):
-    #     exit(1)
-    # print(f"Using OSM data file {data_file_path}")
+def export_to_js_window():
+    """Makes important classes available to JS code by adding them to the window object.
 
-    routing_engine = RoutingEngine()
-    # try:
-    #     routing_graph = routing_engine.compute_graph(data_file_path)
-    #     print(
-    #         f"Generated routing graph with {len(routing_graph.graph.nodes)} nodes and {len(routing_graph.graph.edges)} edges"
-    #     )
-    #     print(routing_graph)
-    # except xml.etree.ElementTree.ParseError as error:
-    #     print_error(f"Failed to parse OSM data")
-    #     print_error(f"Invalid XML: {error}")
-    print("Downloading OSM data")
-    ways, raw_nodes = routing_engine.download_osm_data(
-        BoundingBox(51.26268, -0.41497, 51.27914, -0.36755)
-    )
-    print("Computing routing graph")
-    routing_graph = routing_engine.compute_graph(ways, raw_nodes)
-    calculator = RouteCalculator(routing_graph, RoutingOptions())
-    print("Calculating route")
-    start = 51.273330, -0.397460
-    end = 51.274179, -0.391324
-    route = calculator.calculate_route_a_star(start, end)
-    print(route)
+    Throws an ImportError if we're not running in a browser with PyScript.
+    """
+    from pyscript import window  # type: ignore
+
+    window.py = window.Object.new()
+    window.py.RoutingEngine = RoutingEngine
+    window.py.RouteCalculator = RouteCalculator
+    window.py.RoutingOptions = RoutingOptions
+    window.py.BoundingBox = BoundingBox
+    window.console.debug("Added routing engine exports to window.py")
+
+
+if __name__ == "__main__":
+    try:
+        export_to_js_window()
+    except ImportError:
+        routing_engine = RoutingEngine()
+        ways, raw_nodes = routing_engine.download_osm_data(
+            BoundingBox(51.26268, -0.41497, 51.27914, -0.36755)
+        )
+        print("Computing routing graph")
+        routing_graph = routing_engine.compute_graph(ways, raw_nodes)
+        calculator = RouteCalculator(routing_graph, RoutingOptions())
+        print("Calculating route")
+        start = 51.273330, -0.397460
+        end = 51.274179, -0.391324
+        route = calculator.calculate_route_a_star(start, end)
+        print(route)

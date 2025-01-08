@@ -10,9 +10,16 @@
     />
     <link rel="stylesheet" href="src/index.css" />
     <link rel="stylesheet" href="src/app.css" />
+    <link rel="shortcut icon" href="icons/mmmm.svg" type="image/svg+xml" />
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="src/main.tsx"></script>
+    <script
+      type="py"
+      src="../backend/main.py"
+      config="pyscript.json"
+      worker
+    ></script>
   </body>
 </html>
