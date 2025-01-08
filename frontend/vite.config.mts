@@ -22,11 +22,13 @@ const config = defineConfig({
       includeAssets: ["*"],
       workbox: {
         globPatterns: [
-          "**/*.{js,mjs,ts,mts,jsx,tsx,css,html,png,svg,json,webmanifest,py}",
+          "**/*.{js,mjs,ts,mts,jsx,tsx,wasm,css,html,png,svg,json,webmanifest,py}",
         ],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/cdn.jsdelivr.net\/.*/i,
+            urlPattern: ({ url }) =>
+              url.origin === "https://cdn.jsdelivr.net" ||
+              url.origin === "https://files.pythonhosted.org",
             handler: "CacheFirst",
             options: {
               cacheName: "jsdelivr-cache",
@@ -40,6 +42,16 @@ const config = defineConfig({
             handler: "CacheFirst",
             options: {
               cacheName: "tile-cache",
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "catch-all",
               cacheableResponse: {
                 statuses: [0, 200],
               },
