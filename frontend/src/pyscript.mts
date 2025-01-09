@@ -1,5 +1,7 @@
 import { $ } from "voby"
 
+export type Coordinates = [number, number]
+
 export interface WindowPy {
   BoundingBox: (
     min_lat: number,
