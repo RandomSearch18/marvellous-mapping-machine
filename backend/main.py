@@ -66,6 +66,13 @@ def export_to_js_window():
     window.py.RouteCalculator = RouteCalculator
     window.py.RoutingOptions = RoutingOptions
     window.py.BoundingBox = BoundingBox
+    window.py.one = 1
+    # routing_engine = RoutingEngine()
+    # print(routing_engine)
+    # print("Adding routing engine to window")
+    # window.py.routing_engine = routing_engine
+    # print("added a routing engine")
+    # window.py.download_osm_data = routing_engine.download_osm_data
     window.console.debug("Added routing engine exports to window.py")
 
 
