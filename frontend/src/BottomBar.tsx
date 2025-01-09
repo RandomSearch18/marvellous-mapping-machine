@@ -22,6 +22,10 @@ function BottomBar() {
       useMemo(() => activeScreen() === name),
     ])
   )
+  // e.g. appending #Route to the URL should set the default screen to the Route screen
+  const screenFromHash = window.location.hash.slice(1)
+  if (screenFromHash in bottomBarButtons) activeScreen(screenFromHash)
+
   useEffect(() => {
     // This is a handler function for when the active screen changes
     const newActiveScreen = activeScreen()
