@@ -81,6 +81,7 @@ if __name__ == "__main__":
         export_to_js_window()
     except ImportError:
         routing_engine = RoutingEngine()
+        print("Downloading OSM data")
         ways, raw_nodes = routing_engine.download_osm_data(
             BoundingBox(51.26268, -0.41497, 51.27914, -0.36755)
         )
@@ -88,7 +89,11 @@ if __name__ == "__main__":
         routing_graph = routing_engine.compute_graph(ways, raw_nodes)
         calculator = RouteCalculator(routing_graph, RoutingOptions())
         print("Calculating route")
-        start = 51.273330, -0.397460
-        end = 51.274179, -0.391324
+        # start = 51.273330, -0.397460
+        start = 51.27347, -0.397916
+        # end = 51.274179, -0.391324
+        end = 51.270013, -0.389408
         route = calculator.calculate_route_a_star(start, end)
-        print(route)
+        print(
+            f"Route with {len(route.parts)} parts, {route.total_distance():.0f} meters, {route.total_time():.0f} seconds"
+        )
