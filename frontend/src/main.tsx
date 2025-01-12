@@ -1,7 +1,7 @@
-import { render, useEffect } from "voby"
+import { render } from "voby"
 import App from "./App"
 import "leaflet/dist/leaflet.css"
-import { initPyScript, usePy } from "./pyscript.mts"
+import { initPyScript } from "./pyscript.mts"
 
 document.addEventListener("load", () => {
   navigator.serviceWorker.register("service-worker.ts")

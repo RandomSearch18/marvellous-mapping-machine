@@ -1,5 +1,6 @@
-import type { Map, PolylineOptions } from "leaflet"
+import type { Layer, Map, PolylineOptions } from "leaflet"
 import { $, useEffect } from "voby"
+import { currentRoute } from "./currentRoute.mts"
 
 export const leaflet = $<typeof import("leaflet")>()
 export const mainMap = $<Map>()
@@ -24,6 +25,22 @@ function MainMap() {
 
   return <div id="main-map"></div>
 }
+
+let layersForCurrentRoute: Layer[] = []
+
+useEffect(() => {
+  const L = leaflet()
+  const map = mainMap()
+  const route = currentRoute()
+  if (!L || !map || !route) return
+  layersForCurrentRoute.forEach((layer) => {
+    layer.remove()
+  })
+  layersForCurrentRoute = [
+    drawBbox(route.expandedBbox, { color: "red" }),
+    drawBbox(route.unexpandedBbox, { color: "green" }),
+  ]
+})
 
 export function drawBbox(
   bbox: [number, number, number, number],

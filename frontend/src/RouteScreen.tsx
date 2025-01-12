@@ -1,7 +1,6 @@
 import { $, If, tick, useEffect, useMemo } from "voby"
 import { Coordinates, usePy } from "./pyscript.mts"
-import { drawBbox } from "./MainMap"
-import { Layer } from "leaflet"
+import { currentRoute } from "./currentRoute.mts"
 
 enum CalculationState {
   Idle,
@@ -14,7 +13,6 @@ const routeCalculationProgress = $<CalculationState>(CalculationState.Idle)
 const routingEngineAvailable = useMemo(
   () => !!usePy() && routeCalculationProgress() === CalculationState.Idle
 )
-const layersForCurrentRoute: Layer[] = []
 
 function CalculateButton() {
   const tooltip = useMemo(() => {
@@ -60,14 +58,14 @@ function calculateBboxForRoute(
   expansion: number
 ) {
   // Note: We expand the BBox a bit in case the route has to go away from the destination slightly before coming back
-  const width = Math.abs(start[1] - end[1])
-  const height = Math.abs(start[0] - end[0])
-  const lonExpansionPercentage = expansion * width
-  const latExpansionPercentage = expansion * height
-  const min_lat = Math.min(start[0], end[0]) * 1 - latExpansionPercentage
-  const min_lon = Math.min(start[1], end[1]) * 1 - lonExpansionPercentage
-  const max_lat = Math.max(start[0], end[0]) * 1 + latExpansionPercentage
-  const max_lon = Math.max(start[1], end[1]) * 1 + lonExpansionPercentage
+  // const width = Math.abs(start[1] - end[1])
+  // const height = Math.abs(start[0] - end[0])
+  const latExpansion = expansion * 0.02
+  const lonExpansion = expansion * 0.05
+  const min_lat = Math.min(start[0], end[0]) - latExpansion
+  const min_lon = Math.min(start[1], end[1]) - lonExpansion
+  const max_lat = Math.max(start[0], end[0]) + latExpansion
+  const max_lon = Math.max(start[1], end[1]) + lonExpansion
   return [min_lat, min_lon, max_lat, max_lon] as [
     number,
     number,
@@ -93,11 +91,6 @@ async function calculateRoute() {
   const routing_engine = py.RoutingEngine()
   const bbox = calculateBboxForRoute(startPos, endPos, 0.2)
   console.debug("Using bounding box for route", bbox)
-  layersForCurrentRoute.map((layer) => layer.remove())
-  layersForCurrentRoute.push(
-    drawBbox(calculateBboxForRoute(startPos, endPos, 0), { color: "red" }),
-    drawBbox(bbox, { color: "green" })
-  )
   const [ways, raw_nodes] = routing_engine.download_osm_data(
     py.BoundingBox(...bbox)
   )
@@ -113,6 +106,10 @@ async function calculateRoute() {
     `Calculated route with ${route.parts.length} parts ` +
       `in ${timeElapsed.toLocaleString()} ms`
   )
+  currentRoute({
+    expandedBbox: bbox,
+    unexpandedBbox: calculateBboxForRoute(startPos, endPos, 0),
+  })
   routeCalculationProgress(CalculationState.Idle)
 }
 
