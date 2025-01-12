@@ -1,4 +1,4 @@
-import type { Map } from "leaflet"
+import type { Map, PolylineOptions } from "leaflet"
 import { $, useEffect } from "voby"
 
 export const leaflet = $<typeof import("leaflet")>()
@@ -23,6 +23,24 @@ function MainMap() {
   })
 
   return <div id="main-map"></div>
+}
+
+export function drawBbox(
+  bbox: [number, number, number, number],
+  options: PolylineOptions
+) {
+  const L = leaflet()
+  const map = mainMap()
+  if (!L || !map) return
+  const rectangle = L.rectangle(
+    [
+      [bbox[0], bbox[1]],
+      [bbox[2], bbox[3]],
+    ],
+    options
+  )
+  rectangle.addTo(map)
+  return rectangle
 }
 
 export default MainMap

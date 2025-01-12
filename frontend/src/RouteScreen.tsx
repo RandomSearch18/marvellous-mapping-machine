@@ -1,5 +1,6 @@
 import { $, If, tick, useEffect, useMemo } from "voby"
 import { Coordinates, usePy } from "./pyscript.mts"
+import { drawBbox } from "./MainMap"
 
 enum CalculationState {
   Idle,
@@ -51,13 +52,16 @@ function getCoordsFromInput(inputId: string): Coordinates | null {
   return coords as Coordinates
 }
 
-function calculateBboxForRoute(start: Coordinates, end: Coordinates) {
-  // We expand the BBox a bit in case the route has to go away from the destination slightly before coming back
-  const expansionPercentage = 0.1
+function calculateBboxForRoute(
+  start: Coordinates,
+  end: Coordinates,
+  expansion: number
+) {
+  // expansion: We expand the BBox a bit in case the route has to go away from the destination slightly before coming back
   const width = Math.abs(start[1] - end[1])
   const height = Math.abs(start[0] - end[0])
-  const lonExpansionPercentage = expansionPercentage * width
-  const latExpansionPercentage = expansionPercentage * height
+  const lonExpansionPercentage = expansion * width
+  const latExpansionPercentage = expansion * height
   const min_lat = Math.min(start[0], end[0]) * 1 - latExpansionPercentage
   const min_lon = Math.min(start[1], end[1]) * 1 - lonExpansionPercentage
   const max_lat = Math.max(start[0], end[0]) * 1 + latExpansionPercentage
@@ -85,8 +89,10 @@ async function calculateRoute() {
   routeCalculationProgress(CalculationState.Downloading)
   await tickUI()
   const routing_engine = py.RoutingEngine()
-  const bbox = calculateBboxForRoute(startPos, endPos)
+  const bbox = calculateBboxForRoute(startPos, endPos, 0.2)
   console.debug("Using bounding box for route", bbox)
+  drawBbox(calculateBboxForRoute(startPos, endPos, 0), { color: "red" })
+  drawBbox(bbox, { color: "green" })
   const [ways, raw_nodes] = routing_engine.download_osm_data(
     py.BoundingBox(...bbox)
   )
