@@ -1,6 +1,7 @@
 import type { Layer, Map, PolylineOptions } from "leaflet"
 import { $, useEffect } from "voby"
 import { currentRoute } from "./currentRoute.mts"
+import { Line } from "./types.mts"
 
 export const leaflet = $<typeof import("leaflet")>()
 export const mainMap = $<Map>()
@@ -37,8 +38,13 @@ useEffect(() => {
     layer.remove()
   })
   layersForCurrentRoute = [
-    drawBbox(route.expandedBbox, { color: "red" }),
-    drawBbox(route.unexpandedBbox, { color: "green" }),
+    drawBbox(route.expandedBbox, {
+      color: "green",
+      fillOpacity: 0.1,
+      fill: false,
+    }),
+    // drawBbox(route.unexpandedBbox, { color: "red" }),
+    drawLines(route.lines, { color: "#9d174d", opacity: 0.5 }),
   ]
 
   console.log(route.lines)
@@ -60,6 +66,20 @@ export function drawBbox(
   )
   rectangle.addTo(map)
   return rectangle
+}
+
+/** Draws an array of line segments as a single polyline */
+export function drawLines(lines: Line[], options: PolylineOptions) {
+  const L = leaflet()
+  const map = mainMap()
+  if (!L || !map) throw new Error("Main map not initialised")
+  // We assume that each line segment starts where the previous one ended,
+  // so we can just take the first point of each line segment + the final point
+  const points = lines.map((line) => line[0])
+  points.push(lines.at(-1)![1])
+  const polyline = L.polyline(points, options)
+  polyline.addTo(map)
+  return polyline
 }
 
 export default MainMap
