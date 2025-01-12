@@ -36,10 +36,14 @@ function getCoordsFromInput(inputId: string): Coordinates | null {
 function calculateBboxForRoute(start: Coordinates, end: Coordinates) {
   // We expand the BBox a bit in case the route has to go away from the destination slightly before coming back
   const expansionPercentage = 0.01
-  const min_lat = Math.min(start[0], end[0]) * 1 - expansionPercentage
-  const min_lon = Math.min(start[1], end[1]) * 1 - expansionPercentage
-  const max_lat = Math.max(start[0], end[0]) * 1 + expansionPercentage
-  const max_lon = Math.max(start[1], end[1]) * 1 + expansionPercentage
+  const width = Math.abs(start[1] - end[1])
+  const height = Math.abs(start[0] - end[0])
+  const lonExpansionPercentage = expansionPercentage * width
+  const latExpansionPercentage = expansionPercentage * height
+  const min_lat = Math.min(start[0], end[0]) * 1 - latExpansionPercentage
+  const min_lon = Math.min(start[1], end[1]) * 1 - lonExpansionPercentage
+  const max_lat = Math.max(start[0], end[0]) * 1 + latExpansionPercentage
+  const max_lon = Math.max(start[1], end[1]) * 1 + lonExpansionPercentage
   return [min_lat, min_lon, max_lat, max_lon] as [
     number,
     number,
@@ -75,7 +79,10 @@ function calculateRoute() {
   const route = calculator.calculate_route_a_star(startPos, endPos)
   console.log(route)
   const timeElapsed = performance.now() - performanceStart
-  console.log(`Calculated route in ${timeElapsed.toLocaleString()} ms`)
+  console.log(
+    `Calculated route with ${route.parts.length} parts ` +
+      `in ${timeElapsed.toLocaleString()} ms`
+  )
 }
 
 function RouteScreen() {
