@@ -31,7 +31,7 @@ export function drawBbox(
 ) {
   const L = leaflet()
   const map = mainMap()
-  if (!L || !map) return
+  if (!L || !map) throw new Error("Main map not initialised")
   const rectangle = L.rectangle(
     [
       [bbox[0], bbox[1]],

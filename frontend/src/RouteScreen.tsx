@@ -1,6 +1,7 @@
 import { $, If, tick, useEffect, useMemo } from "voby"
 import { Coordinates, usePy } from "./pyscript.mts"
 import { drawBbox } from "./MainMap"
+import { Layer } from "leaflet"
 
 enum CalculationState {
   Idle,
@@ -13,6 +14,7 @@ const routeCalculationProgress = $<CalculationState>(CalculationState.Idle)
 const routingEngineAvailable = useMemo(
   () => !!usePy() && routeCalculationProgress() === CalculationState.Idle
 )
+const layersForCurrentRoute: Layer[] = []
 
 function CalculateButton() {
   const tooltip = useMemo(() => {
@@ -57,7 +59,7 @@ function calculateBboxForRoute(
   end: Coordinates,
   expansion: number
 ) {
-  // expansion: We expand the BBox a bit in case the route has to go away from the destination slightly before coming back
+  // Note: We expand the BBox a bit in case the route has to go away from the destination slightly before coming back
   const width = Math.abs(start[1] - end[1])
   const height = Math.abs(start[0] - end[0])
   const lonExpansionPercentage = expansion * width
@@ -91,8 +93,11 @@ async function calculateRoute() {
   const routing_engine = py.RoutingEngine()
   const bbox = calculateBboxForRoute(startPos, endPos, 0.2)
   console.debug("Using bounding box for route", bbox)
-  drawBbox(calculateBboxForRoute(startPos, endPos, 0), { color: "red" })
-  drawBbox(bbox, { color: "green" })
+  layersForCurrentRoute.map((layer) => layer.remove())
+  layersForCurrentRoute.push(
+    drawBbox(calculateBboxForRoute(startPos, endPos, 0), { color: "red" }),
+    drawBbox(bbox, { color: "green" })
+  )
   const [ways, raw_nodes] = routing_engine.download_osm_data(
     py.BoundingBox(...bbox)
   )
