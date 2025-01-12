@@ -20,6 +20,8 @@ function MainMap() {
     const createdMap = L.map("main-map").setView([51.27556, -0.37834], 15)
     L.tileLayer("https://c.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: `&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>`,
+      maxNativeZoom: 19,
+      maxZoom: 20,
     }).addTo(createdMap)
     mainMap(createdMap)
   })
