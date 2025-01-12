@@ -15,7 +15,8 @@ function CalculateButton() {
           class="btn btn-md btn-primary text-2xl font-medium"
           id="calculate-route"
           disabled={() => !routingEngineAvailable()}
-          onClick={calculateRoute}
+          form="route-input"
+          type="submit"
         >
           ✅ Calculate
         </button>
@@ -51,6 +52,7 @@ function calculateRoute() {
   const py = usePy()
   if (!py) return
 
+  const performanceStart = performance.now()
   const startPos = getCoordsFromInput("route-start-input")
   const endPos = getCoordsFromInput("route-end-input")
   if (!startPos || !endPos) {
@@ -72,7 +74,8 @@ function calculateRoute() {
   console.debug("Initialised route calculator")
   const route = calculator.calculate_route_a_star(startPos, endPos)
   console.log(route)
-  console.log("Finished calculating route")
+  const timeElapsed = performance.now() - performanceStart
+  console.log(`Calculated route in ${timeElapsed.toLocaleString()} ms`)
 }
 
 function RouteScreen() {
@@ -82,7 +85,14 @@ function RouteScreen() {
     <>
       <div class="mx-3">
         <h2 class="font-bold text-4xl mt-5 mb-8">{title}</h2>
-        <form class="flex flex-col">
+        <form
+          class="flex flex-col"
+          id="route-input"
+          onSubmit={(event) => {
+            event.preventDefault()
+            calculateRoute()
+          }}
+        >
           <label htmlFor="route-start-input" class="text-primary">
             Start walking from
           </label>
