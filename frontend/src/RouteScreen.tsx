@@ -1,7 +1,15 @@
-import { useMemo } from "voby"
+import { $, If, tick, useEffect, useMemo } from "voby"
 import { Coordinates, usePy } from "./pyscript.mts"
 
+enum CalculationState {
+  Idle,
+  Downloading,
+  ComputingGraph,
+  CalculatingRoute,
+}
+
 const routingEngineAvailable = useMemo(() => !!usePy())
+const routeCalculationProgress = $<CalculationState>(CalculationState.Idle)
 
 function CalculateButton() {
   const tooltip = useMemo(() => {
@@ -64,26 +72,45 @@ function calculateRoute() {
     return
   }
 
+  routeCalculationProgress(CalculationState.Downloading)
+  tick()
   const routing_engine = py.RoutingEngine()
-  console.debug("Initialised routing engine")
   const bbox = calculateBboxForRoute(startPos, endPos)
   console.debug("Using bounding box for route", bbox)
   const [ways, raw_nodes] = routing_engine.download_osm_data(
     py.BoundingBox(...bbox)
   )
-  console.debug("Downloaded OSM data")
+  routeCalculationProgress(CalculationState.ComputingGraph)
+  tick()
   const routing_graph = routing_engine.compute_graph(ways, raw_nodes)
-  console.debug("Computed routing graph")
   const calculator = py.RouteCalculator(routing_graph, py.RoutingOptions())
-  console.debug("Initialised route calculator")
+  routeCalculationProgress(CalculationState.CalculatingRoute)
+  tick()
   const route = calculator.calculate_route_a_star(startPos, endPos)
-  console.log(route)
   const timeElapsed = performance.now() - performanceStart
   console.log(
     `Calculated route with ${route.parts.length} parts ` +
       `in ${timeElapsed.toLocaleString()} ms`
   )
+  routeCalculationProgress(CalculationState.Idle)
 }
+
+useEffect(() => {
+  switch (routeCalculationProgress()) {
+    case CalculationState.Idle:
+      console.debug("Route calculator ready")
+      break
+    case CalculationState.Downloading:
+      console.debug("Downloading OSM data...")
+      break
+    case CalculationState.ComputingGraph:
+      console.debug("Computing routing graph...")
+      break
+    case CalculationState.CalculatingRoute:
+      console.debug("Calculating route...")
+      break
+  }
+})
 
 function RouteScreen() {
   const title = useMemo(() => "Calculate a route")
@@ -121,6 +148,26 @@ function RouteScreen() {
             class="input input-bordered input-primary w-full my-2 max-w-2xl"
           />
         </form>
+        <If when={() => routeCalculationProgress()}>
+          <div class="mt-8 flex items-center gap-8">
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <div class="h-full">
+              {() => {
+                switch (routeCalculationProgress()) {
+                  case CalculationState.Idle:
+                    console.warn("Loading spinner visible when idle")
+                    return "Idle"
+                  case CalculationState.Downloading:
+                    return "Downloading OSM data..."
+                  case CalculationState.ComputingGraph:
+                    return "Computing routing graph..."
+                  case CalculationState.CalculatingRoute:
+                    return "Calculating route..."
+                }
+              }}
+            </div>
+          </div>
+        </If>
       </div>
       <CalculateButton />
     </>
