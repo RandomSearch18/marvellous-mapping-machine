@@ -35,7 +35,7 @@ function getCoordsFromInput(inputId: string): Coordinates | null {
 
 function calculateBboxForRoute(start: Coordinates, end: Coordinates) {
   // We expand the BBox a bit in case the route has to go away from the destination slightly before coming back
-  const expansionPercentage = 0.01
+  const expansionPercentage = 0.1
   const width = Math.abs(start[1] - end[1])
   const height = Math.abs(start[0] - end[0])
   const lonExpansionPercentage = expansionPercentage * width
