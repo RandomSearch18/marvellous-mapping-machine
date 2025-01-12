@@ -8,11 +8,14 @@ enum CalculationState {
   CalculatingRoute,
 }
 
-const routingEngineAvailable = useMemo(() => !!usePy())
 const routeCalculationProgress = $<CalculationState>(CalculationState.Idle)
+const routingEngineAvailable = useMemo(
+  () => !!usePy() && routeCalculationProgress() === CalculationState.Idle
+)
 
 function CalculateButton() {
   const tooltip = useMemo(() => {
+    if (!routingEngineAvailable()) return "Routing engine is not ready"
     return ""
   })
 
