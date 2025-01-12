@@ -34,14 +34,11 @@ function getCoordsFromInput(inputId: string): Coordinates | null {
 
 function calculateBboxForRoute(start: Coordinates, end: Coordinates) {
   // We expand the BBox a bit in case the route has to go away from the destination slightly before coming back
-  // 0.015 degrees of longitude is roughly 1 km in the UK (I think)
-  const lon_expansion = 0.015
-  const LAT_DEGREES_PER_M = 0.008575
-  const lat_expansion = 1000 * LAT_DEGREES_PER_M
-  const min_lat = Math.min(start[0], end[0]) - lat_expansion
-  const min_lon = Math.min(start[1], end[1]) - lon_expansion
-  const max_lat = Math.max(start[0], end[0]) + lat_expansion
-  const max_lon = Math.max(start[1], end[1]) + lon_expansion
+  const expansionPercentage = 0.01
+  const min_lat = Math.min(start[0], end[0]) * 1 - expansionPercentage
+  const min_lon = Math.min(start[1], end[1]) * 1 - expansionPercentage
+  const max_lat = Math.max(start[0], end[0]) * 1 + expansionPercentage
+  const max_lon = Math.max(start[1], end[1]) * 1 + expansionPercentage
   return [min_lat, min_lon, max_lat, max_lon] as [
     number,
     number,
@@ -91,6 +88,7 @@ function RouteScreen() {
           </label>
           <input
             id="route-start-input"
+            name="route-start"
             type="text"
             placeholder="e.g. 51.24914, -0.56304"
             class="input input-bordered input-primary w-full mt-2 mb-8 max-w-2xl"
@@ -100,6 +98,7 @@ function RouteScreen() {
           </label>
           <input
             id="route-end-input"
+            name="route-end"
             type="text"
             placeholder="e.g. 51.23724, -0.56456"
             class="input input-bordered input-primary w-full my-2 max-w-2xl"
