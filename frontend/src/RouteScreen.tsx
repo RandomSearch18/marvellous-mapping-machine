@@ -33,6 +33,13 @@ function CalculateButton() {
   )
 }
 
+function tickUI(): Promise<void> {
+  return new Promise((resolve) => {
+    tick()
+    setTimeout(resolve, 1)
+  })
+}
+
 function getCoordsFromInput(inputId: string): Coordinates | null {
   const input = document.getElementById(inputId) as HTMLInputElement
   if (!input) throw new Error(`No input found with ID ${inputId}`)
@@ -60,7 +67,7 @@ function calculateBboxForRoute(start: Coordinates, end: Coordinates) {
   ]
 }
 
-function calculateRoute() {
+async function calculateRoute() {
   const py = usePy()
   if (!py) return
 
@@ -73,7 +80,7 @@ function calculateRoute() {
   }
 
   routeCalculationProgress(CalculationState.Downloading)
-  tick()
+  await tickUI()
   const routing_engine = py.RoutingEngine()
   const bbox = calculateBboxForRoute(startPos, endPos)
   console.debug("Using bounding box for route", bbox)
@@ -81,11 +88,11 @@ function calculateRoute() {
     py.BoundingBox(...bbox)
   )
   routeCalculationProgress(CalculationState.ComputingGraph)
-  tick()
+  await tickUI()
   const routing_graph = routing_engine.compute_graph(ways, raw_nodes)
   const calculator = py.RouteCalculator(routing_graph, py.RoutingOptions())
   routeCalculationProgress(CalculationState.CalculatingRoute)
-  tick()
+  await tickUI()
   const route = calculator.calculate_route_a_star(startPos, endPos)
   const timeElapsed = performance.now() - performanceStart
   console.log(
@@ -158,11 +165,11 @@ function RouteScreen() {
                     console.warn("Loading spinner visible when idle")
                     return "Idle"
                   case CalculationState.Downloading:
-                    return "Downloading OSM data..."
+                    return "Downloading map data (1/3)"
                   case CalculationState.ComputingGraph:
-                    return "Computing routing graph..."
+                    return "Processing map data (2/3)"
                   case CalculationState.CalculatingRoute:
-                    return "Calculating route..."
+                    return "Finding best route (3/3)"
                 }
               }}
             </div>
