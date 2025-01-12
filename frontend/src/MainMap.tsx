@@ -40,6 +40,8 @@ useEffect(() => {
     drawBbox(route.expandedBbox, { color: "red" }),
     drawBbox(route.unexpandedBbox, { color: "green" }),
   ]
+
+  console.log(route.lines)
 })
 
 export function drawBbox(

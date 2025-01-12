@@ -1,7 +1,7 @@
 import { $, If, tick, useEffect, useMemo } from "voby"
-import { Coordinates, usePy } from "./pyscript.mts"
+import { usePy } from "./pyscript.mts"
 import { currentRoute } from "./currentRoute.mts"
-import { BboxTuple } from "./types.mts"
+import { BboxTuple, Coordinates, Line } from "./types.mts"
 
 enum CalculationState {
   Idle,
@@ -105,6 +105,14 @@ async function calculateRoute() {
   currentRoute({
     expandedBbox: bbox,
     unexpandedBbox: calculateBboxForRoute(startPos, endPos, 0),
+    start: startPos,
+    end: endPos,
+    parts: route.parts,
+    lines: (route.parts.toJs() as any[])
+      .filter((part) => "start" in part)
+      .map((part) => [part.start.toJs(), part.end.toJs()] as Line),
+    totalTime: route.total_time(),
+    totalDistance: route.total_distance(),
   })
   routeCalculationProgress(CalculationState.Idle)
 }
