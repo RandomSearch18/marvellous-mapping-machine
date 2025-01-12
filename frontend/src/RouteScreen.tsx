@@ -63,8 +63,10 @@ function calculateRoute() {
 
   const routing_engine = py.RoutingEngine()
   console.debug("Initialised routing engine")
+  const bbox = calculateBboxForRoute(startPos, endPos)
+  console.debug("Using bounding box for route", bbox)
   const [ways, raw_nodes] = routing_engine.download_osm_data(
-    py.BoundingBox(...calculateBboxForRoute(startPos, endPos))
+    py.BoundingBox(...bbox)
   )
   console.debug("Downloaded OSM data")
   const routing_graph = routing_engine.compute_graph(ways, raw_nodes)
