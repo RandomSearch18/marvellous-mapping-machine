@@ -17,7 +17,7 @@ const config = defineConfig({
     VitePWA({
       manifest,
       devOptions: {
-        enabled: true,
+        enabled: false,
       },
       includeAssets: ["*"],
       workbox: {

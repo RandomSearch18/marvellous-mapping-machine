@@ -1,6 +1,7 @@
 import BottomBar from "./BottomBar"
 import CurrentLocationButton from "./CurrentLocationButton"
 import MainMap from "./MainMap"
+import RouteScreen from "./RouteScreen"
 
 function App() {
   return (
@@ -13,7 +14,7 @@ function App() {
             {() => <CurrentLocationButton />}
           </div>
           <div class="screen" data-screen="route">
-            Route screen!
+            <RouteScreen />
           </div>
           <div class="screen" data-screen="options">
             Options screen!

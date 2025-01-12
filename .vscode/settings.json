@@ -2,6 +2,7 @@
   "python.analysis.typeCheckingMode": "standard",
   "cSpell.words": [
     "astar",
+    "Bbox",
     "credentialless",
     "footway",
     "geographiclib",
