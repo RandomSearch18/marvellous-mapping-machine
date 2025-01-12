@@ -1,7 +1,7 @@
-import type { Layer, Map, PolylineOptions } from "leaflet"
+import type { CircleOptions, Layer, Map, PolylineOptions, Popup } from "leaflet"
 import { $, useEffect } from "voby"
 import { currentRoute } from "./currentRoute.mts"
-import { Line } from "./types.mts"
+import { Coordinates, Line } from "./types.mts"
 
 export const leaflet = $<typeof import("leaflet")>()
 export const mainMap = $<Map>()
@@ -29,6 +29,19 @@ function MainMap() {
 
 let layersForCurrentRoute: Layer[] = []
 
+const waypointCircleOptions: CircleOptions = {
+  radius: 4,
+  color: "#9d174d",
+  opacity: 0,
+  fillOpacity: 0.7,
+}
+
+const waypointLineOptions: PolylineOptions = {
+  color: "#9d174d",
+  opacity: 0.5,
+  dashArray: "1 6",
+}
+
 useEffect(() => {
   const L = leaflet()
   const map = mainMap()
@@ -38,13 +51,29 @@ useEffect(() => {
     layer.remove()
   })
   layersForCurrentRoute = [
-    drawBbox(route.expandedBbox, {
-      color: "green",
-      fillOpacity: 0.1,
-      fill: false,
-    }),
+    // drawBbox(route.expandedBbox, {
+    //   color: "green",
+    //   fillOpacity: 0.1,
+    //   fill: false,
+    // }),
     // drawBbox(route.unexpandedBbox, { color: "red" }),
+    // Mark start and end points with circles
+    drawCircle(
+      route.start,
+      waypointCircleOptions,
+      "Start at " + route.start.join(", ")
+    ),
+    drawCircle(
+      route.end,
+      waypointCircleOptions,
+      "Destination at " + route.start.join(", ")
+    ),
+    // Draw line to start point
+    drawStraightLine(route.start, route.lines[0][0], waypointLineOptions),
+    // Draw the actual route
     drawLines(route.lines, { color: "#9d174d", opacity: 0.5 }),
+    // Draw line to end point
+    drawStraightLine(route.end, route.lines.at(-1)![1], waypointLineOptions),
   ]
 
   console.log(route.lines)
@@ -68,6 +97,19 @@ export function drawBbox(
   return rectangle
 }
 
+export function drawStraightLine(
+  from: Coordinates,
+  to: Coordinates,
+  options: PolylineOptions
+) {
+  const L = leaflet()
+  const map = mainMap()
+  if (!L || !map) throw new Error("Main map not initialised")
+  const polyline = L.polyline([from, to], options)
+  polyline.addTo(map)
+  return polyline
+}
+
 /** Draws an array of line segments as a single polyline */
 export function drawLines(lines: Line[], options: PolylineOptions) {
   const L = leaflet()
@@ -80,6 +122,20 @@ export function drawLines(lines: Line[], options: PolylineOptions) {
   const polyline = L.polyline(points, options)
   polyline.addTo(map)
   return polyline
+}
+
+export function drawCircle(
+  coordinates: [number, number],
+  options: CircleOptions,
+  popup?: string | HTMLElement | Popup
+) {
+  const L = leaflet()
+  const map = mainMap()
+  if (!L || !map) throw new Error("Main map not initialised")
+  const circle = L.circle(coordinates, options)
+  if (popup) circle.bindPopup(popup)
+  circle.addTo(map)
+  return circle
 }
 
 export default MainMap
