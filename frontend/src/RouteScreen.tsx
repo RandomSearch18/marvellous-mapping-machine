@@ -1,6 +1,7 @@
 import { $, If, tick, useEffect, useMemo } from "voby"
 import { Coordinates, usePy } from "./pyscript.mts"
 import { currentRoute } from "./currentRoute.mts"
+import { BboxTuple } from "./types.mts"
 
 enum CalculationState {
   Idle,
@@ -66,12 +67,7 @@ function calculateBboxForRoute(
   const min_lon = Math.min(start[1], end[1]) - lonExpansion
   const max_lat = Math.max(start[0], end[0]) + latExpansion
   const max_lon = Math.max(start[1], end[1]) + lonExpansion
-  return [min_lat, min_lon, max_lat, max_lon] as [
-    number,
-    number,
-    number,
-    number
-  ]
+  return [min_lat, min_lon, max_lat, max_lon] as BboxTuple
 }
 
 async function calculateRoute() {
