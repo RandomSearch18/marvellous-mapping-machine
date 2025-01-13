@@ -30,8 +30,8 @@ function RouteInfoScreen({ route }: { route: CurrentRoute }) {
       <div class="mx-3">
         <h2 class="font-bold text-4xl mt-5 mb-8">Route info</h2>
         <div class="flex flex-col gap-4">
-          <p>📍 Walking from {route.start}</p>
-          <p>📌 Walking to {route.end}</p>
+          <p>📍 Walking from {route.start.join(", ")}</p>
+          <p>📌 Walking to {route.end.join(", ")}</p>
           <p>
             🪜{meters} metres, {minutes} minutes remaining
             <br />⌚ Estimated to arrive at{" "}
