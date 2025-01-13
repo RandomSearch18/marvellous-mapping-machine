@@ -1,7 +1,12 @@
-import { $ } from "voby"
+import { $, useEffect } from "voby"
 import { BboxTuple, Coordinates, Line } from "./types.mts"
 
 export const currentRoute = $<CurrentRoute>()
+
+useEffect(() => {
+  console.log("Current route:", currentRoute())
+})
+console.log("USED effect")
 
 export interface RoutePart {
   distance: number

@@ -1,7 +1,10 @@
+import { Ternary } from "voby"
 import BottomBar from "./BottomBar"
 import CurrentLocationButton from "./CurrentLocationButton"
 import MainMap from "./MainMap"
 import RouteScreen from "./RouteScreen"
+import { currentRoute } from "./currentRoute.mts"
+import RouteInfoScreen from "./RouteInfoScreen"
 
 function App() {
   return (
@@ -14,7 +17,10 @@ function App() {
             {() => <CurrentLocationButton />}
           </div>
           <div class="screen" data-screen="route">
-            <RouteScreen />
+            <Ternary when={() => currentRoute()}>
+              <RouteInfoScreen />
+              <RouteScreen />
+            </Ternary>
           </div>
           <div class="screen" data-screen="options">
             Options screen!
