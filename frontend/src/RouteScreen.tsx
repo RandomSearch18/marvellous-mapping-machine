@@ -149,7 +149,10 @@ function RouteScreen() {
             calculateRoute()
           }}
         >
-          <label htmlFor="route-start-input" class="text-primary">
+          <label
+            htmlFor="route-start-input"
+            class="text-pink-800 dark:text-primary"
+          >
             Start walking from
           </label>
           <input
@@ -157,9 +160,12 @@ function RouteScreen() {
             name="route-start"
             type="text"
             placeholder="e.g. 51.24914, -0.56304"
-            class="input input-bordered input-primary w-full mt-2 mb-8 max-w-2xl"
+            class="input input-bordered input-primary w-full mt-2 mb-8 max-w-2xl border-pink-800 dark:border-primary"
           />
-          <label htmlFor="route-end-input" class="text-primary">
+          <label
+            htmlFor="route-end-input"
+            class="text-pink-800 dark:text-primary"
+          >
             Destination
           </label>
           <input
@@ -167,7 +173,7 @@ function RouteScreen() {
             name="route-end"
             type="text"
             placeholder="e.g. 51.23724, -0.56456"
-            class="input input-bordered input-primary w-full my-2 max-w-2xl"
+            class="input input-bordered input-primary w-full my-2 max-w-2xl border-pink-800 dark:border-primary"
           />
         </form>
         <If when={() => routeCalculationProgress()}>
