@@ -83,3 +83,7 @@ yarn dev
 ```
 
 And access the frontend using the URL displayed in your terminal.
+
+### Quirks
+
+Note that Python code is only updated when the build tool starts (i.e. no live reload), so if you want to edit Python code while previewing the frontend, you should restart the Vite dev server after editing to see your changes.
