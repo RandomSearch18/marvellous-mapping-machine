@@ -18,7 +18,7 @@ function App() {
           </div>
           <div class="screen" data-screen="route">
             <Ternary when={() => currentRoute()}>
-              <RouteInfoScreen />
+              <RouteInfoScreen route={currentRoute()!} />
               <RouteScreen />
             </Ternary>
           </div>
