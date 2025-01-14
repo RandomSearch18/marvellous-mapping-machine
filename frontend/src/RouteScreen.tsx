@@ -17,6 +17,7 @@ const routingEngineAvailable = useMemo(
 
 function CalculateButton() {
   const tooltip = useMemo(() => {
+    if (routeCalculationProgress()) return "Route is being calculated"
     if (!routingEngineAvailable()) return "Routing engine is not ready"
     return ""
   })
