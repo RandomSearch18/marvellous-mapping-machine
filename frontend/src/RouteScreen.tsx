@@ -2,6 +2,7 @@ import { $, If, tick, useEffect, useMemo } from "voby"
 import { usePy } from "./pyscript.mts"
 import { currentRoute } from "./currentRoute.mts"
 import { BboxTuple, Coordinates, Line } from "./types.mts"
+import { ValidationError } from "./validationError.mts"
 
 enum CalculationState {
   Idle,
@@ -46,12 +47,39 @@ function tickUI(): Promise<void> {
   })
 }
 
-function getCoordsFromInput(inputId: string): Coordinates | null {
+/**
+ * Parses a user-provided input that might be simple coordinates
+ * - "Simple coordinates" are coordinates in the format `51.245, -0.563`
+ * @param input Raw string input from text box
+ * @returns A `Coordinates` pair if the input *is* simple coordinates, or `null` otherwise
+ * @throws {Error} If the input is simple coordinates, but out of range
+ */
+function parseSimpleCoordinates(input: string): Coordinates | null {
+  const simpleCoordsRegex = /^[\-\+\d\.]+,\s*[\-\+\d\.]+$/
+  if (!simpleCoordsRegex.test(input)) return null
+  // Validate that coordinates are within range
+  const [lat, lon] = input.split(",").map(parseFloat)
+  if (Math.abs(lat) > 90)
+    throw new ValidationError(`Latitude (${lat}°) must be between -90° and 90°`)
+  if (Math.abs(lon) > 180)
+    throw new ValidationError(
+      `Longitude (${lon}°) must be between -180° and 180°`
+    )
+  return [lat, lon]
+}
+
+function geocodeAddress(address: string): Coordinates {
+  throw new ValidationError("Geocoding not implemented yet")
+}
+
+function getCoordsFromInput(inputId: string): Coordinates {
   const input = document.getElementById(inputId) as HTMLInputElement
   if (!input) throw new Error(`No input found with ID ${inputId}`)
-  const coords = input.value.split(",").map(parseFloat)
-  if (coords.length !== 2) return null
-  return coords as Coordinates
+  if (!input.value) throw new ValidationError("No coordinates provided")
+  const simpleCoords = parseSimpleCoordinates(input.value)
+  if (simpleCoords) return simpleCoords
+  const geocodedCoords = geocodeAddress(input.value)
+  return geocodedCoords
 }
 
 function calculateBboxForRoute(
@@ -71,17 +99,39 @@ function calculateBboxForRoute(
   return [min_lat, min_lon, max_lat, max_lon] as BboxTuple
 }
 
+function getStartCoords(): Coordinates | null {
+  try {
+    return getCoordsFromInput("route-start-input")
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      window.alert(`Start position: ${error.message}`)
+      return null
+    }
+    throw error
+  }
+}
+
+function getEndCoords(): Coordinates | null {
+  try {
+    return getCoordsFromInput("route-end-input")
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      window.alert(`Destination: ${error.message}`)
+      return null
+    }
+    throw error
+  }
+}
+
 async function calculateRoute() {
   const py = usePy()
   if (!py) return
 
   const performanceStart = performance.now()
-  const startPos = getCoordsFromInput("route-start-input")
-  const endPos = getCoordsFromInput("route-end-input")
-  if (!startPos || !endPos) {
-    window.alert("Please enter valid start and end coordinates")
-    return
-  }
+  const startPos = getStartCoords()
+  if (!startPos) return
+  const endPos = getEndCoords()
+  if (!endPos) return
 
   routeCalculationProgress(CalculationState.Downloading)
   await tickUI()
