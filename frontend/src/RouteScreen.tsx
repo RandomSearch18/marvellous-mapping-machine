@@ -1,7 +1,7 @@
 import { $, If, tick, useEffect, useMemo } from "voby"
 import { usePy } from "./pyscript.mts"
 import { currentRoute } from "./currentRoute.mts"
-import { BboxTuple, Coordinates, Line } from "./types.mts"
+import { BboxTuple, Coordinates, Line, NominatimPlace } from "./types.mts"
 import { ValidationError } from "./validationError.mts"
 
 enum CalculationState {
@@ -69,8 +69,16 @@ function parseSimpleCoordinates(input: string): Coordinates | null {
   return [lat, lon]
 }
 
-async function geocodeAddress(address: string): Promise<Coordinates> {
-  throw new ValidationError("Geocoding not implemented yet")
+async function geocodeAddress(address: string): Promise<Coordinates | null> {
+  const url = new URL("https://nominatim.openstreetmap.org/search")
+  url.searchParams.append("q", address)
+  url.searchParams.append("format", "jsonv2")
+  url.searchParams.append("limit", "1")
+  const data = await fetch(url).then((response) => response.json())
+  if (!data.length) return null
+  const place = data[0] as NominatimPlace
+  console.debug("Found place", place)
+  return [parseFloat(place.lat), parseFloat(place.lon)]
 }
 
 async function getCoordsFromInput(inputId: string): Promise<Coordinates> {
