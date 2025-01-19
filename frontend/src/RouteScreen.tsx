@@ -6,6 +6,7 @@ import { ValidationError } from "./validationError.mts"
 
 enum CalculationState {
   Idle,
+  ProcessingAddresses,
   Downloading,
   ComputingGraph,
   CalculatingRoute,
@@ -68,17 +69,17 @@ function parseSimpleCoordinates(input: string): Coordinates | null {
   return [lat, lon]
 }
 
-function geocodeAddress(address: string): Coordinates {
+async function geocodeAddress(address: string): Promise<Coordinates> {
   throw new ValidationError("Geocoding not implemented yet")
 }
 
-function getCoordsFromInput(inputId: string): Coordinates {
+async function getCoordsFromInput(inputId: string): Promise<Coordinates> {
   const input = document.getElementById(inputId) as HTMLInputElement
   if (!input) throw new Error(`No input found with ID ${inputId}`)
   if (!input.value) throw new ValidationError("No coordinates provided")
   const simpleCoords = parseSimpleCoordinates(input.value)
   if (simpleCoords) return simpleCoords
-  const geocodedCoords = geocodeAddress(input.value)
+  const geocodedCoords = await geocodeAddress(input.value)
   return geocodedCoords
 }
 
@@ -99,9 +100,9 @@ function calculateBboxForRoute(
   return [min_lat, min_lon, max_lat, max_lon] as BboxTuple
 }
 
-function getStartCoords(): Coordinates | null {
+async function getStartCoords(): Promise<Coordinates | null> {
   try {
-    return getCoordsFromInput("route-start-input")
+    return await getCoordsFromInput("route-start-input")
   } catch (error) {
     if (error instanceof ValidationError) {
       window.alert(`Start position: ${error.message}`)
@@ -111,9 +112,9 @@ function getStartCoords(): Coordinates | null {
   }
 }
 
-function getEndCoords(): Coordinates | null {
+async function getEndCoords(): Promise<Coordinates | null> {
   try {
-    return getCoordsFromInput("route-end-input")
+    return await getCoordsFromInput("route-end-input")
   } catch (error) {
     if (error instanceof ValidationError) {
       window.alert(`Destination: ${error.message}`)
@@ -128,9 +129,9 @@ async function calculateRoute() {
   if (!py) return
 
   const performanceStart = performance.now()
-  const startPos = getStartCoords()
+  const startPos = await getStartCoords()
   if (!startPos) return
-  const endPos = getEndCoords()
+  const endPos = await getEndCoords()
   if (!endPos) return
 
   routeCalculationProgress(CalculationState.Downloading)
@@ -172,6 +173,9 @@ useEffect(() => {
   switch (routeCalculationProgress()) {
     case CalculationState.Idle:
       console.debug("Route calculator ready")
+      break
+    case CalculationState.ProcessingAddresses:
+      console.debug("Processing address inputs...")
       break
     case CalculationState.Downloading:
       console.debug("Downloading OSM data...")
@@ -236,12 +240,14 @@ function RouteScreen() {
                   case CalculationState.Idle:
                     console.warn("Loading spinner visible when idle")
                     return "Idle"
+                  case CalculationState.ProcessingAddresses:
+                    return "Processing address inputs (1/4)"
                   case CalculationState.Downloading:
-                    return "Downloading map data (1/3)"
+                    return "Downloading map data (2/4)"
                   case CalculationState.ComputingGraph:
-                    return "Processing map data (2/3)"
+                    return "Processing map data (3/4)"
                   case CalculationState.CalculatingRoute:
-                    return "Finding best route (3/3)"
+                    return "Finding best route (4/4)"
                 }
               }}
             </div>
