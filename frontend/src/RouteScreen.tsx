@@ -74,6 +74,7 @@ async function geocodeAddress(address: string): Promise<Coordinates | null> {
   url.searchParams.append("q", address)
   url.searchParams.append("format", "jsonv2")
   url.searchParams.append("limit", "1")
+  url.searchParams.append("countrycodes", "gb")
   const data = await fetch(url).then((response) => response.json())
   if (!data.length) return null
   const place = data[0] as NominatimPlace
@@ -88,6 +89,8 @@ async function getCoordsFromInput(inputId: string): Promise<Coordinates> {
   const simpleCoords = parseSimpleCoordinates(input.value)
   if (simpleCoords) return simpleCoords
   const geocodedCoords = await geocodeAddress(input.value)
+  if (!geocodedCoords)
+    throw new ValidationError(`Couldn't find address\n${input.value}`)
   return geocodedCoords
 }
 
