@@ -293,11 +293,19 @@ function RouteScreen() {
             <button
               class="btn btn-neutral"
               type="button"
-              onClick={() =>
-                getEndCoords().then(
-                  (value) => value && alert(`Destination will be ${value}`)
-                )
-              }
+              onClick={async () => {
+                const address =
+                  document.querySelector<HTMLInputElement>(
+                    "#route-end-input"
+                  )!.value
+                if (!address) return alert("No address provided")
+                const geocodedCoords = await geocodeAddress(address)
+                if (geocodedCoords) {
+                  alert(`Destination will be ${geocodedCoords}`)
+                } else {
+                  alert(`Couldn't find address: ${address}`)
+                }
+              }}
             >
               🔎 Check destination address
             </button>
