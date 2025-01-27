@@ -71,7 +71,7 @@ function parseSimpleCoordinates(input: string): Coordinates | null {
   return [lat, lon]
 }
 
-async function geocodeAddress(address: string): Promise<Coordinates | null> {
+async function geocodeAddress(address: string): Promise<NominatimPlace | null> {
   const url = new URL("https://nominatim.openstreetmap.org/search")
   url.searchParams.append("q", address)
   url.searchParams.append("format", "jsonv2")
@@ -81,7 +81,20 @@ async function geocodeAddress(address: string): Promise<Coordinates | null> {
   if (!data.length) return null
   const place = data[0] as NominatimPlace
   console.debug("Found place", place)
-  return [parseFloat(place.lat), parseFloat(place.lon)]
+  return place
+}
+
+async function displayResolvedAddress(inputId: string) {
+  const input = document.getElementById(inputId)
+  if (!(input instanceof HTMLInputElement))
+    throw new Error(`Input element #${inputId} not found`)
+  const address = input.value
+  if (!address) return alert("No address provided")
+  const place = await geocodeAddress(address)
+  if (!place) return alert(`Couldn't find address: ${address}`)
+  alert(
+    `Address:\n${place.display_name}\n\nCoordinates: ${place.lat}, ${place.lon}`
+  )
 }
 
 async function getCoordsFromInput(inputId: string): Promise<Coordinates> {
@@ -90,10 +103,10 @@ async function getCoordsFromInput(inputId: string): Promise<Coordinates> {
   if (!input.value) throw new ValidationError("No input provided")
   const simpleCoords = parseSimpleCoordinates(input.value)
   if (simpleCoords) return simpleCoords
-  const geocodedCoords = await geocodeAddress(input.value)
-  if (!geocodedCoords)
+  const geocodedPlace = await geocodeAddress(input.value)
+  if (!geocodedPlace)
     throw new ValidationError(`Couldn't find address\n${input.value}`)
-  return geocodedCoords
+  return [parseFloat(geocodedPlace.lat), parseFloat(geocodedPlace.lon)]
 }
 
 function calculateBboxForRoute(
@@ -250,11 +263,7 @@ function RouteScreen() {
             <button
               class="btn btn-neutral"
               type="button"
-              onClick={() =>
-                getStartCoords().then(
-                  (value) => value && alert(`Start position will be ${value}`)
-                )
-              }
+              onClick={() => displayResolvedAddress("route-start-input")}
               disabled={startAtCurrentLocation}
             >
               🔎 Check start address
@@ -293,19 +302,7 @@ function RouteScreen() {
             <button
               class="btn btn-neutral"
               type="button"
-              onClick={async () => {
-                const address =
-                  document.querySelector<HTMLInputElement>(
-                    "#route-end-input"
-                  )!.value
-                if (!address) return alert("No address provided")
-                const geocodedCoords = await geocodeAddress(address)
-                if (geocodedCoords) {
-                  alert(`Destination will be ${geocodedCoords}`)
-                } else {
-                  alert(`Couldn't find address: ${address}`)
-                }
-              }}
+              onClick={() => displayResolvedAddress("route-end-input")}
             >
               🔎 Check destination address
             </button>
