@@ -1,4 +1,4 @@
-import { $, If, tick, useEffect, useMemo } from "voby"
+import { $, If, Ternary, tick, useEffect, useMemo } from "voby"
 import { usePy } from "./pyscript.mts"
 import { currentRoute } from "./currentRoute.mts"
 import { BboxTuple, Coordinates, Line, NominatimPlace } from "./types.mts"
@@ -16,6 +16,8 @@ const routeCalculationProgress = $<CalculationState>(CalculationState.Idle)
 const routingEngineAvailable = useMemo(
   () => !!usePy() && routeCalculationProgress() === CalculationState.Idle
 )
+
+const startAtCurrentLocation = $(false)
 
 function CalculateButton() {
   const tooltip = useMemo(() => {
@@ -85,7 +87,7 @@ async function geocodeAddress(address: string): Promise<Coordinates | null> {
 async function getCoordsFromInput(inputId: string): Promise<Coordinates> {
   const input = document.getElementById(inputId) as HTMLInputElement
   if (!input) throw new Error(`No input found with ID ${inputId}`)
-  if (!input.value) throw new ValidationError("No coordinates provided")
+  if (!input.value) throw new ValidationError("No input provided")
   const simpleCoords = parseSimpleCoordinates(input.value)
   if (simpleCoords) return simpleCoords
   const geocodedCoords = await geocodeAddress(input.value)
@@ -112,6 +114,17 @@ function calculateBboxForRoute(
 }
 
 async function getStartCoords(): Promise<Coordinates | null> {
+  if (startAtCurrentLocation()) {
+    return new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) =>
+          resolve([position.coords.latitude, position.coords.longitude]),
+        (error) =>
+          reject(new Error(`Failed to get current location: ${error.message}`))
+      )
+    })
+  }
+
   try {
     return await getCoordsFromInput("route-start-input")
   } catch (error) {
@@ -208,39 +221,87 @@ function RouteScreen() {
       <div class="mx-3">
         <h2 class="font-bold text-4xl mt-5 mb-8">{title}</h2>
         <form
-          class="flex flex-col"
+          class="flex flex-col gap-8  max-w-2xl"
           id="route-input"
           onSubmit={(event) => {
             event.preventDefault()
             calculateRoute()
           }}
         >
-          <label
-            htmlFor="route-start-input"
-            class="text-pink-800 dark:text-primary"
-          >
-            Start walking from
-          </label>
-          <input
-            id="route-start-input"
-            name="route-start"
-            type="text"
-            placeholder="e.g. 51.24914, -0.56304"
-            class="input input-bordered input-primary w-full mt-2 mb-8 max-w-2xl border-pink-800 dark:border-primary"
-          />
-          <label
-            htmlFor="route-end-input"
-            class="text-pink-800 dark:text-primary"
-          >
-            Destination
-          </label>
-          <input
-            id="route-end-input"
-            name="route-end"
-            type="text"
-            placeholder="e.g. 51.23724, -0.56456"
-            class="input input-bordered input-primary w-full my-2 max-w-2xl border-pink-800 dark:border-primary"
-          />
+          <div class="flex flex-col gap-2">
+            <label
+              htmlFor="route-start-input"
+              class="text-pink-800 dark:text-primary"
+            >
+              Start walking from
+            </label>
+            <input
+              id="route-start-input"
+              name="route-start"
+              type="text"
+              placeholder={useMemo(() =>
+                startAtCurrentLocation()
+                  ? "Using current GPS location"
+                  : "Enter an address or coordinates"
+              )}
+              disabled={startAtCurrentLocation}
+              class="input input-bordered input-primary w-full border-pink-800 dark:border-primary"
+            />
+            <button
+              class="btn btn-neutral"
+              type="button"
+              onClick={() =>
+                getStartCoords().then(
+                  (value) => value && alert(`Start position will be ${value}`)
+                )
+              }
+              disabled={startAtCurrentLocation}
+            >
+              🔎 Check start address
+            </button>
+            <Ternary when={() => startAtCurrentLocation()}>
+              <button
+                class="btn btn-primary"
+                type="button"
+                onClick={() => startAtCurrentLocation(false)}
+              >
+                🗺️ Use address or coordinates
+              </button>
+              <button
+                class="btn btn-primary"
+                type="button"
+                onClick={() => startAtCurrentLocation(true)}
+              >
+                📍 Use current location
+              </button>
+            </Ternary>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label
+              htmlFor="route-end-input"
+              class="text-pink-800 dark:text-primary"
+            >
+              Destination
+            </label>
+            <input
+              id="route-end-input"
+              name="route-end"
+              type="text"
+              placeholder="Enter an address or coordinates"
+              class="input input-bordered input-primary w-full border-pink-800 dark:border-primary"
+            />
+            <button
+              class="btn btn-neutral"
+              type="button"
+              onClick={() =>
+                getEndCoords().then(
+                  (value) => value && alert(`Destination will be ${value}`)
+                )
+              }
+            >
+              🔎 Check destination address
+            </button>
+          </div>
         </form>
         <If when={() => routeCalculationProgress()}>
           <div class="mt-8 flex items-center gap-8">
