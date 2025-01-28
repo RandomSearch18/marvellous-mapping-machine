@@ -126,16 +126,38 @@ function calculateBboxForRoute(
   return [min_lat, min_lon, max_lat, max_lon] as BboxTuple
 }
 
+function getGpsLocation(): Promise<Coordinates> {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) =>
+        resolve([position.coords.latitude, position.coords.longitude]),
+      (error) => reject(error)
+    )
+  })
+}
+
 async function getStartCoords(): Promise<Coordinates | null> {
   if (startAtCurrentLocation()) {
-    return new Promise((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(
-        (position) =>
-          resolve([position.coords.latitude, position.coords.longitude]),
-        (error) =>
-          reject(new Error(`Failed to get current location: ${error.message}`))
-      )
-    })
+    try {
+      return await getGpsLocation()
+    } catch (error) {
+      if (!(error instanceof GeolocationPositionError)) throw error
+      switch (error.code) {
+        case GeolocationPositionError.POSITION_UNAVAILABLE:
+          alert("Couldn't get current location: location unavailable")
+          break
+        case GeolocationPositionError.TIMEOUT:
+          alert("Couldn't get current location: location timed out")
+          break
+        case GeolocationPositionError.PERMISSION_DENIED:
+          alert("Couldn't let current location: permission denied")
+          break
+        default:
+          alert("Couldn't get current location: unknown error")
+      }
+      console.error(`Failed to get GPS location`, error)
+      return null
+    }
   }
 
   try {
