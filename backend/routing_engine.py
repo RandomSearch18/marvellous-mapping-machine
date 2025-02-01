@@ -1,7 +1,7 @@
 import networkx
 import requests
 from route_result import Arrive, RoutePart, RouteProgression, RouteResult, StartWalking
-from osm_data_types import BoundingBox, Coordinates, OSMNode, OSMWay
+from osm_data_types import BoundingBox, Coordinates, OSMNode, OSMWay, OSMWayData
 from geographiclib.geodesic import Geodesic
 
 geodesic_wgs84: Geodesic = Geodesic.WGS84  # type: ignore
@@ -79,54 +79,54 @@ class RoutingOptions:
     - set default foot=no
 - calculate_weight(node_a, node_b, way):
   - add_implicit_tags(way)
-  - return calculate_node_weight(node_a) + calculate_way_weight(way) \* way.length
+  - return calculate_node_weight(node_a) + calculate_way_weight(way) * way.length
 - base_weight_road(way):
   - weight = 1
   - if way["highway"] == "motorway" or way["highway"] == "motorway_link":
-    - weight \*= 50,000
+    - weight *= 50,000
   - elif way["highway"] == "trunk" or way["highway"] == "trunk_link":
-    - weight \*= 10,000
+    - weight *= 10,000
   - elif way["highway"] == "primary" or way["highway"] == "primary_link":
-    - weight \*= 20
+    - weight *= 20
   - elif way["highway"] == "secondary" or way["highway"] == "secondary_link":
-    - weight \*= 15
+    - weight *= 15
   - elif way["highway"] == "tertiary" or way["highway"] == "tertiary_link":
-    - weight \*= 5 if options["higher_traffic_roads"] else 10
+    - weight *= 5 if options["higher_traffic_roads"] else 10
   - elif way["highway"] == "unclassified":
-    - weight \*= 4 if options["higher_traffic_roads"] else 6
+    - weight *= 4 if options["higher_traffic_roads"] else 6
   - elif way["highway"] == "residential":
-    - weight \*= 2
+    - weight *= 2
   - elif way["highway"] == "living_street":
-    - weight \*= 1.5
+    - weight *= 1.5
   - elif way["highway"] == "service":
     - if way["service"] == "driveway":
-      - weight \*= 1
+      - weight *= 1
     - elif way["service"] == "parking_aisle" or way["service"] == "parking":
-      - weight \*= 2
+      - weight *= 2
     - elif way["service"] == "alley":
-      - weight \*= 1.3
+      - weight *= 1.3
     - elif way["service"] == "drive_through":
-      - weight \*= 5
+      - weight *= 5
     - elif way["service"] == "slipway":
-      - weight \*= 7
+      - weight *= 7
     - elif way["service"] == "layby":
-      - weight \*= 1.75
+      - weight *= 1.75
     - else:
-      - weight \*= 2
+      - weight *= 2
   - else:
     - return None
   - elif way["highway"] == "pedestrian":
-    - weight \*= 0.8
+    - weight *= 0.8
   - elif way["highway"] == "track":
-    - weight \*= 1.5
+    - weight *= 1.5
 - additional_weight_road(way):
   - factor = 1
   - if way["lanes"] >= 2:
-    - factor \*= 1.1
+    - factor *= 1.1
   - if way["shoulder"] == "yes":
-    - factor \*= 0.9
+    - factor *= 0.9
   - if way["verge"] == "yes":
-    - factor \*= 0.95
+    - factor *= 0.95
   - return factor
 - weight_addition_for_steps(way):
 
@@ -159,7 +159,7 @@ class RoutingOptions:
   - if base_weight_as_road is not None:
     - if way doesn't have pavement:
       - additional_factors = additional_weight_roads(way)
-      - return base_weight_as_road \* additional_factors
+      - return base_weight_as_road * additional_factors
     - if way does have pavement:
       - pavement_weight = 1
       - reduce weight if maxspeed < 20 mph
@@ -204,6 +204,8 @@ class RouteCalculator:
             way.setdefault("foot", "no")
 
     def base_weight_road(self, way: dict) -> float | None:
+        # In the future we might want consider additional factors in this method,
+        # hence the logic where we start with a weight of 1 and multiply it.
         weight = 1
         match way.get("highway"):
             case "motorway" | "motorway_link":
@@ -248,13 +250,12 @@ class RouteCalculator:
     def calculate_node_weight(self, node: int) -> float:
         return 0  # TODO
 
-    def calculate_weight(
-        self, node_a: int, node_b: int, way_data: dict[str, str]
-    ) -> float:
-        self.add_implicit_tags(way_data)
-        return self.calculate_node_weight(node_a) + self.calculate_way_weight(
-            way_data
-        ) * float(way_data["length"])
+    def calculate_weight(self, node_a: int, node_b: int, way_data: OSMWayData) -> float:
+        self.add_implicit_tags(way_data["tags"])
+        way_weight = self.calculate_way_weight(way_data["tags"])
+        node_weight = self.calculate_node_weight(node_a)
+        print(way_weight, way_data)
+        return node_weight + way_weight * float(way_data["length"])
 
     def estimate_time(self, way_data: dict) -> float:
         # Based on my average walking speed of 3.3 km/h

@@ -1,3 +1,6 @@
+from typing import TypedDict
+
+
 type Coordinates = tuple[float, float]
 
 
@@ -34,3 +37,9 @@ class OSMWay(OSMElement):
         super().__init__("way", tags)
         self.id = id
         self.nodes = nodes
+
+
+class OSMWayData(TypedDict):
+    id: int
+    tags: dict[str, str]
+    length: float
