@@ -272,8 +272,7 @@ class RouteCalculator:
                 return base_weight_as_road * additional_factors
             pavement_weight = 1  # TODO: use weight_path()
             # Improve or worsen the weight for walking along a pavement according to the road's maxspeed
-            maxspeed = way.get("maxspeed")
-            maxspeed_value = way_maxspeed_mph(maxspeed) if maxspeed else None
+            maxspeed_value = way_maxspeed_mph(way)
             if maxspeed_value:
                 if maxspeed_value < 20:
                     pavement_weight *= 0.9
