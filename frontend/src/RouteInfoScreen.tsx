@@ -21,6 +21,13 @@ function ClearRouteButton() {
 }
 
 function RouteInfoScreen({ route }: { route: CurrentRoute }) {
+  if (!route)
+    // Sometimes route is undefined, despite App.tsx ensuring it is truthy before this component is rendered
+    // To prevent crashing the app, we have this cute little guard clause
+    return (
+      <p class="route-info-error">Route info not available due to a bug.</p>
+    )
+
   const meters = displayInteger(route.totalDistance)
   const minutes = displayInteger(route.totalTime / 60)
   const ETA = useMemo(() => new Date(timestampNow() + route.totalTime * 1000))
