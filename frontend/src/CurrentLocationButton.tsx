@@ -19,8 +19,9 @@ useEffect(() => {
     cleanupMarkers()
     const radius = event.accuracy / 2
     locationMarker = L.circle(event.latlng, {
-      radius: Math.min(20, radius),
-      fillOpacity: 1,
+      radius: Math.min(5, radius),
+      fillOpacity: 0.8,
+      opacity: 0.8,
     }).addTo(map)
     locationCircle = L.circle(event.latlng, {
       radius,

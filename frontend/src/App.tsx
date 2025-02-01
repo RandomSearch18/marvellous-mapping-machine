@@ -1,4 +1,4 @@
-import { Ternary } from "voby"
+import { useMemo } from "voby"
 import BottomBar from "./BottomBar"
 import CurrentLocationButton from "./CurrentLocationButton"
 import MainMap from "./MainMap"
@@ -17,10 +17,10 @@ function App() {
             {() => <CurrentLocationButton />}
           </div>
           <div class="screen" data-screen="route">
-            <Ternary when={() => currentRoute()}>
-              <RouteInfoScreen route={currentRoute()!} />
-              <RouteScreen />
-            </Ternary>
+            {useMemo(() => {
+              const route = currentRoute()
+              return route ? <RouteInfoScreen route={route} /> : <RouteScreen />
+            })}
           </div>
           <div class="screen" data-screen="options">
             Options screen!
