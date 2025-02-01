@@ -205,39 +205,41 @@ class RouteCalculator:
 
     def base_weight_road(self, way: dict) -> float | None:
         weight = 1
-        if way["highway"] == "motorway" or way["highway"] == "motorway_link":
-            weight *= 50_000
-        elif way["highway"] == "trunk" or way["highway"] == "trunk_link":
-            weight *= 10_000
-        elif way["highway"] == "primary" or way["highway"] == "primary_link":
-            weight *= 20
-        elif way["highway"] == "secondary" or way["highway"] == "secondary_link":
-            weight *= 15
-        elif way["highway"] == "tertiary" or way["highway"] == "tertiary_link":
-            weight *= 5 if self.options.truthy("higher_traffic_roads") else 10
-        elif way["highway"] == "unclassified":
-            weight *= 4 if self.options.truthy("higher_traffic_roads") else 6
-        elif way["highway"] == "residential":
-            weight *= 2
-        elif way["highway"] == "living_street":
-            weight *= 1.5
-        elif way["highway"] == "service":
-            if way["service"] == "driveway":
-                weight *= 1
-            elif way["service"] == "parking_aisle" or way["service"] == "parking":
+        match way.get("highway"):
+            case "motorway" | "motorway_link":
+                weight *= 50_000
+            case "trunk" | "trunk_link":
+                weight *= 10_000
+            case "primary" | "primary_link":
+                weight *= 20
+            case "secondary" | "secondary_link":
+                weight *= 15
+            case "tertiary" | "tertiary_link":
+                weight *= 5 if self.options.truthy("higher_traffic_roads") else 10
+            case "unclassified":
+                weight *= 4 if self.options.truthy("higher_traffic_roads") else 6
+            case "residential":
                 weight *= 2
-            elif way["service"] == "alley":
-                weight *= 1.3
-            elif way["service"] == "drive_through":
-                weight *= 5
-            elif way["service"] == "slipway":
-                weight *= 7
-            elif way["service"] == "layby":
-                weight *= 1.75
-            else:
-                weight *= 2
-        else:
-            return None
+            case "living_street":
+                weight *= 1.5
+            case "service":
+                match way.get("service"):
+                    case "driveway":
+                        weight *= 1
+                    case "parking_aisle" | "parking":
+                        weight *= 2
+                    case "alley":
+                        weight *= 1.3
+                    case "drive_through":
+                        weight *= 5
+                    case "slipway":
+                        weight *= 7
+                    case "layby":
+                        weight *= 1.75
+                    case _:
+                        weight *= 2
+            case _:
+                return None
         return weight
 
     def calculate_way_weight(self, way: dict) -> float:
