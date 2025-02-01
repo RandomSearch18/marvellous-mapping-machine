@@ -1,7 +1,15 @@
 import networkx
 import requests
 from route_result import Arrive, RoutePart, RouteProgression, RouteResult, StartWalking
-from osm_data_types import BoundingBox, Coordinates, OSMNode, OSMWay, OSMWayData
+from osm_data_types import (
+    BoundingBox,
+    Coordinates,
+    OSMNode,
+    OSMWay,
+    OSMWayData,
+    way_has_sidewalk,
+    way_maxspeed_mph,
+)
 from geographiclib.geodesic import Geodesic
 
 geodesic_wgs84: Geodesic = Geodesic.WGS84  # type: ignore
@@ -245,7 +253,34 @@ class RouteCalculator:
         return weight
 
     def calculate_way_weight(self, way: dict) -> float:
-        return self.base_weight_road(way) or 1  # TODO
+        base_weight_as_road = self.base_weight_road(way)
+        if base_weight_as_road is not None:
+            has_sidewalk = way_has_sidewalk(way)
+            if has_sidewalk is None:
+                # Sidewalk tags not present, so guess based off of road type
+                has_sidewalk = way.get("highway") in [
+                    "trunk",
+                    "primary",
+                    "secondary",
+                    "tertiary",
+                    "residential",
+                    "unclassified",
+                ]
+            if not has_sidewalk:
+                # We're walking on the road carriageway
+                additional_factors = 0  # TODO
+                return base_weight_as_road * additional_factors
+            pavement_weight = 1  # TODO: use weight_path()
+            # Improve or worsen the weight for walking along a pavement according to the road's maxspeed
+            maxspeed = way.get("maxspeed")
+            maxspeed_value = way_maxspeed_mph(maxspeed) if maxspeed else None
+            if maxspeed_value:
+                if maxspeed_value < 20:
+                    pavement_weight *= 0.9
+                elif maxspeed_value > 50:
+                    pavement_weight *= 1.1
+            return pavement_weight
+        return 1  # TODO use weight_path()
 
     def calculate_node_weight(self, node: int) -> float:
         return 0  # TODO

@@ -12,10 +12,12 @@
     "jsonv2",
     "layby",
     "maskable",
+    "maxspeed",
     "Mish's",
     "networkx",
     "osmnx",
     "pyscript",
+    "sidewalk",
     "voby",
     "workbox"
   ]

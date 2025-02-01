@@ -1,4 +1,5 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
+import warnings
 
 
 type Coordinates = tuple[float, float]
@@ -43,3 +44,86 @@ class OSMWayData(TypedDict):
     id: int
     tags: dict[str, str]
     length: float
+
+
+def way_has_sidewalk(
+    way: dict[str, str]
+) -> Literal["both"] | Literal["left"] | Literal["right"] | Literal["no"] | None:
+    yes_values = ["yes"]
+    no_values = ["no", "separate", "lane", "none"]
+
+    sidewalk_left = way.get("sidewalk:left")
+    if sidewalk_left:
+        if sidewalk_left in yes_values:
+            return "left"
+        if sidewalk_left in no_values:
+            return "no"
+        warnings.warn(f"Unknown tag value: sidewalk:left={sidewalk_left}")
+    sidewalk_right = way.get("sidewalk:right")
+    if sidewalk_right:
+        if sidewalk_right in yes_values:
+            return "right"
+        if sidewalk_right in no_values:
+            return "no"
+        warnings.warn(f"Unknown tag value: sidewalk:right={sidewalk_right}")
+    sidewalk_both = way.get("sidewalk:both")
+    if sidewalk_both:
+        if sidewalk_both in yes_values:
+            return "both"
+        if sidewalk_both in no_values:
+            return "no"
+        warnings.warn(f"Unknown tag value: sidewalk:both={sidewalk_both}")
+
+    match way.get("sidewalk"):
+        case "both":
+            return "both"
+        case "left":
+            return "left"
+        case "right":
+            return "right"
+        case "no" | "none" | "separate" | "lane":
+            return "no"
+        case None:
+            return None
+        case unknown_value:
+            warnings.warn(f"Unknown tag value: sidewalk={unknown_value}")
+            return None
+
+
+def parse_speed(value: str, unit: str) -> float:
+    try:
+        speed = float(value)
+    except ValueError:
+        raise ValueError(f"Invalid numeric value for speed: {value}")
+    match unit:
+        case "mph":
+            return speed
+        case "km/h" | "kmh" | "kmph":
+            return speed / 1.609344
+        case "knots":
+            return speed * 1.15078
+        case _:
+            raise ValueError(f"Unknown unit for speed: {unit}")
+
+
+def way_maxspeed_mph(way: dict[str, str]) -> float | None:
+    value = way.get("maxspeed")
+    if not value:
+        return None
+    normalised_value = value.strip().lower()
+    match normalised_value.split(" "):
+        case [speed, unit]:
+            try:
+                return parse_speed(speed, unit)
+            except ValueError as e:
+                warnings.warn(f"Invalid maxspeed: {e}")
+                return None
+        case [speed]:
+            try:
+                return parse_speed(speed, "km/h")
+            except ValueError as e:
+                warnings.warn(f"Invalid maxspeed: {e}")
+                return None
+        case _:
+            warnings.warn(f"Invalid tag format: maxspeed={value}")
+            return None
