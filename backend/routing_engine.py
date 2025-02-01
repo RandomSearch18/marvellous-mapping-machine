@@ -60,7 +60,128 @@ class RoutingGraph:
 
 
 class RoutingOptions:
-    pass
+    def truthy(self, key: str) -> bool:
+        return False  # TODO
+
+
+"""##### Weight calculation pseudocode
+
+- add_implicit_tags(node):
+  - if highway == motorway:
+    - set default foot=no
+  - if service == driveway:
+    - set default access=private
+  - if service == parking_aisle:
+    - set default foot=yes (unless access!=yes)
+  - if service == emergency_access:
+    - set default access=no
+  - if service == bus:
+    - set default foot=no
+- calculate_weight(node_a, node_b, way):
+  - add_implicit_tags(way)
+  - return calculate_node_weight(node_a) + calculate_way_weight(way) \* way.length
+- base_weight_road(way):
+  - weight = 1
+  - if way["highway"] == "motorway" or way["highway"] == "motorway_link":
+    - weight \*= 50,000
+  - elif way["highway"] == "trunk" or way["highway"] == "trunk_link":
+    - weight \*= 10,000
+  - elif way["highway"] == "primary" or way["highway"] == "primary_link":
+    - weight \*= 20
+  - elif way["highway"] == "secondary" or way["highway"] == "secondary_link":
+    - weight \*= 15
+  - elif way["highway"] == "tertiary" or way["highway"] == "tertiary_link":
+    - weight \*= 5 if options["higher_traffic_roads"] else 10
+  - elif way["highway"] == "unclassified":
+    - weight \*= 4 if options["higher_traffic_roads"] else 6
+  - elif way["highway"] == "residential":
+    - weight \*= 2
+  - elif way["highway"] == "living_street":
+    - weight \*= 1.5
+  - elif way["highway"] == "service":
+    - if way["service"] == "driveway":
+      - weight \*= 1
+    - elif way["service"] == "parking_aisle" or way["service"] == "parking":
+      - weight \*= 2
+    - elif way["service"] == "alley":
+      - weight \*= 1.3
+    - elif way["service"] == "drive_through":
+      - weight \*= 5
+    - elif way["service"] == "slipway":
+      - weight \*= 7
+    - elif way["service"] == "layby":
+      - weight \*= 1.75
+    - else:
+      - weight \*= 2
+  - else:
+    - return None
+  - elif way["highway"] == "pedestrian":
+    - weight \*= 0.8
+  - elif way["highway"] == "track":
+    - weight \*= 1.5
+- additional_weight_road(way):
+  - factor = 1
+  - if way["lanes"] >= 2:
+    - factor \*= 1.1
+  - if way["shoulder"] == "yes":
+    - factor \*= 0.9
+  - if way["verge"] == "yes":
+    - factor \*= 0.95
+  - return factor
+- weight_addition_for_steps(way):
+
+  - if step_count < 4:
+    - return 0.05
+  - if conveying is truthy:
+    - return 0
+  - weight = 0.3
+  - has_ramp = ramp == yes (and the ramp isn't a non-walkable ramp)
+  - has_handrail = handrail (or handrail on a specific side) == yes
+  - if has_ramp:
+    - weight -= 0.1
+  - if has_handrail:
+    - weight -= 0.05
+  - return weight
+
+- weight_path(way):
+  - if way["highway"] not in ["footway", "bridleway", "steps", "corridor", "path", "cycleway", "track", "pedestrian"]:
+    - return None
+  - maintained = 0
+  - if highway==steps: add weight_addition_for_steps(way) to weight
+  - if highway == one of "footway", "cycleway", "pedestrian":
+    - maintained = 1
+  - if operator is present:
+    - maintained = 1
+  - if informal == yes:
+    - maintained = -1
+- calculate_way_weight(way):
+  - base_weight_as_road = base_weight_road(way)
+  - if base_weight_as_road is not None:
+    - if way doesn't have pavement:
+      - additional_factors = additional_weight_roads(way)
+      - return base_weight_as_road \* additional_factors
+    - if way does have pavement:
+      - pavement_weight = 1
+      - reduce weight if maxspeed < 20 mph
+      - increase weight if maxspeed > 50 mph
+      - return pavement_weight
+  - weight_as_path = weight_path(way)
+  - if weight_as_path is not None:
+    - return weight_as_path
+  - if way["highway"] == "road":
+    - raise a warning for invalid/incomplete data
+    - return 1
+  - return infinity
+- calculate_node_weight(node):
+  - access = node["foot"] || node["access"]
+  - if access == "no":
+    - return infinity
+  - if access == "private" && !options["private_access"]:
+    - return infinity
+  - if node["barrier"] == "gate" (or similar):
+    - if node["locked"] == "yes":
+      - return infinity
+  - return 0"""
 
 
 class RouteCalculator:
@@ -68,9 +189,71 @@ class RouteCalculator:
         self.graph = graph
         self.options = options
 
-    def calculate_weight(self, node_a: int, node_b: int, data: dict[str, str]) -> float:
-        # TODO: do
-        return float(data["length"])
+    def add_implicit_tags(self, way: dict):
+        if way.get("highway") == "motorway" or way.get("highway") == "motorway_link":
+            way.setdefault("foot", "no")
+        if way.get("service") == "driveway":
+            way.setdefault("access", "private")
+        if way.get("service") == "parking_aisle":
+            # assumes access=yes if access=* isn't present
+            if (not way.get("access")) or way.get("access") == "yes":
+                way.setdefault("foot", "yes")
+        if way.get("service") == "emergency_access":
+            way.setdefault("access", "no")
+        if way.get("service") == "bus":
+            way.setdefault("foot", "no")
+
+    def base_weight_road(self, way: dict) -> float | None:
+        weight = 1
+        if way["highway"] == "motorway" or way["highway"] == "motorway_link":
+            weight *= 50_000
+        elif way["highway"] == "trunk" or way["highway"] == "trunk_link":
+            weight *= 10_000
+        elif way["highway"] == "primary" or way["highway"] == "primary_link":
+            weight *= 20
+        elif way["highway"] == "secondary" or way["highway"] == "secondary_link":
+            weight *= 15
+        elif way["highway"] == "tertiary" or way["highway"] == "tertiary_link":
+            weight *= 5 if self.options.truthy("higher_traffic_roads") else 10
+        elif way["highway"] == "unclassified":
+            weight *= 4 if self.options.truthy("higher_traffic_roads") else 6
+        elif way["highway"] == "residential":
+            weight *= 2
+        elif way["highway"] == "living_street":
+            weight *= 1.5
+        elif way["highway"] == "service":
+            if way["service"] == "driveway":
+                weight *= 1
+            elif way["service"] == "parking_aisle" or way["service"] == "parking":
+                weight *= 2
+            elif way["service"] == "alley":
+                weight *= 1.3
+            elif way["service"] == "drive_through":
+                weight *= 5
+            elif way["service"] == "slipway":
+                weight *= 7
+            elif way["service"] == "layby":
+                weight *= 1.75
+            else:
+                weight *= 2
+        else:
+            return None
+        return weight
+
+    def calculate_way_weight(self, way: dict) -> float:
+        return self.base_weight_road(way)  # TODO
+
+    def calculate_node_weight(self, node: int) -> float:
+        return 0  # TODO
+
+    def calculate_weight(
+        self, node_a: int, node_b: int, way_data: dict[str, str]
+    ) -> float:
+        self.add_implicit_tags(way_data)
+        return (
+            self.calculate_node_weight(node_a)
+            + self.calculate_way_weight(way_data) * way_data["length"]
+        )
 
     def estimate_time(self, way_data: dict) -> float:
         # Based on my average walking speed of 3.3 km/h
