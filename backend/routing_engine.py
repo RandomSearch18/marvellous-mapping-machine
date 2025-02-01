@@ -243,7 +243,7 @@ class RouteCalculator:
         return weight
 
     def calculate_way_weight(self, way: dict) -> float:
-        return self.base_weight_road(way)  # TODO
+        return self.base_weight_road(way) or 1  # TODO
 
     def calculate_node_weight(self, node: int) -> float:
         return 0  # TODO
@@ -252,10 +252,9 @@ class RouteCalculator:
         self, node_a: int, node_b: int, way_data: dict[str, str]
     ) -> float:
         self.add_implicit_tags(way_data)
-        return (
-            self.calculate_node_weight(node_a)
-            + self.calculate_way_weight(way_data) * way_data["length"]
-        )
+        return self.calculate_node_weight(node_a) + self.calculate_way_weight(
+            way_data
+        ) * float(way_data["length"])
 
     def estimate_time(self, way_data: dict) -> float:
         # Based on my average walking speed of 3.3 km/h
