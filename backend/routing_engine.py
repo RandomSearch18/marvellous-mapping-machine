@@ -297,12 +297,18 @@ class RouteCalculator:
         way_weight = self.calculate_way_weight(way_data["tags"])
         node_weight = self.calculate_node_weight(node_a)
         print(way_weight, way_data)
-        self.way_weights[way_data["id"]] = {
-            "weight": way_weight,
-            "total_weight": way_weight * way_data["length"],
-            "start": node_a_data["pos"],
-            "end": node_b_data["pos"],
-        }
+        if way_data["id"] in self.way_weights:
+            # A bit of a hack: assumes that this function is called exactly once for each section (edge) of the way
+            self.way_weights[way_data["id"]]["total_weight"] += (
+                way_weight * way_data["length"]
+            )
+        else:
+            self.way_weights[way_data["id"]] = {
+                "weight": way_weight,
+                "total_weight": way_weight * way_data["length"],
+                "start": node_a_data["pos"],
+                "end": node_b_data["pos"],
+            }
         return node_weight + way_weight * way_data["length"]
 
     def estimate_time(self, way_data: dict) -> float:
