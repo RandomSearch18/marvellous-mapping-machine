@@ -49,6 +49,11 @@ class OSMWayData(TypedDict):
 def way_has_sidewalk(
     way: dict[str, str]
 ) -> Literal["both"] | Literal["left"] | Literal["right"] | Literal["no"] | None:
+    """Returns whether the given way has a sidewalk on the left, right, both sides
+
+    - Returns `None` if sidewalk information is not available
+    - Warning: returns `"no"` if no sidewalk is present (not `False` as you might expect)
+    """
     yes_values = ["yes"]
     no_values = ["no", "separate", "lane", "none"]
 

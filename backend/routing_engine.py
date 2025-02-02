@@ -268,7 +268,7 @@ class RouteCalculator:
                     "residential",
                     "unclassified",
                 ]
-            if not has_sidewalk:
+            if has_sidewalk == "no":
                 # We're walking on the road carriageway
                 additional_factors = 1  # TODO
                 return base_weight_as_road * additional_factors
