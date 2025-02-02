@@ -268,16 +268,13 @@ class RouteCalculator:
                 ]
             if not has_sidewalk:
                 # We're walking on the road carriageway
-                additional_factors = 0  # TODO
+                additional_factors = 1  # TODO
                 return base_weight_as_road * additional_factors
             pavement_weight = 1  # TODO: use weight_path()
             # Improve or worsen the weight for walking along a pavement according to the road's maxspeed
             maxspeed_value = way_maxspeed_mph(way)
-            if maxspeed_value:
-                if maxspeed_value < 20:
-                    pavement_weight *= 0.9
-                elif maxspeed_value > 50:
-                    pavement_weight *= 1.1
+            if maxspeed_value and maxspeed_value >= 60:
+                pavement_weight *= 1.1
             return pavement_weight
         return 1  # TODO use weight_path()
 
