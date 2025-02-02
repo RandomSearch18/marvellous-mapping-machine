@@ -196,6 +196,8 @@ class RouteCalculator:
     def __init__(self, graph: RoutingGraph, options: RoutingOptions):
         self.graph = graph
         self.options = options
+        # Stores way weights as they are calculated, for debugging only
+        self.way_weights = {}
 
     def add_implicit_tags(self, way: dict):
         if way.get("highway") == "motorway" or way.get("highway") == "motorway_link":
@@ -286,6 +288,7 @@ class RouteCalculator:
         way_weight = self.calculate_way_weight(way_data["tags"])
         node_weight = self.calculate_node_weight(node_a)
         print(way_weight, way_data)
+        self.way_weights[way_data["id"]] = way_weight
         return node_weight + way_weight * float(way_data["length"])
 
     def estimate_time(self, way_data: dict) -> float:
