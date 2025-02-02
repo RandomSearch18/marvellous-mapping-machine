@@ -73,7 +73,7 @@ useEffect(() => {
     // Draw line to start point
     drawStraightLine(route.start, route.lines[0][0], waypointLineOptions),
     // Draw the actual route
-    drawLines(route.lines, { color: "#9d174d", opacity: 0.5 }),
+    drawLines(route.lines, { color: "#9d174d", opacity: 0.5, weight: 3 }),
     // Draw line to end point
     drawStraightLine(route.end, route.lines.at(-1)![1], waypointLineOptions),
   ]
