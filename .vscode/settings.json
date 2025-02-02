@@ -16,6 +16,7 @@
     "Mish's",
     "networkx",
     "osmnx",
+    "pyodide",
     "pyscript",
     "sidewalk",
     "voby",

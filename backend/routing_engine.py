@@ -199,6 +199,13 @@ class RouteCalculator:
         # Stores way weights as they are calculated, for debugging only
         self.way_weights = {}
 
+    def way_weights_js(self):
+        try:
+            from pyodide.ffi import to_js  # type: ignore
+        except ImportError:
+            raise ImportError("Must be running under Pyodide")
+        return to_js(self.way_weights)
+
     def add_implicit_tags(self, way: dict):
         if way.get("highway") == "motorway" or way.get("highway") == "motorway_link":
             way.setdefault("foot", "no")
@@ -284,12 +291,19 @@ class RouteCalculator:
         return 0  # TODO
 
     def calculate_weight(self, node_a: int, node_b: int, way_data: OSMWayData) -> float:
+        node_a_data = self.graph.node(node_a)
+        node_b_data = self.graph.node(node_b)
         self.add_implicit_tags(way_data["tags"])
         way_weight = self.calculate_way_weight(way_data["tags"])
         node_weight = self.calculate_node_weight(node_a)
         print(way_weight, way_data)
-        self.way_weights[way_data["id"]] = way_weight
-        return node_weight + way_weight * float(way_data["length"])
+        self.way_weights[way_data["id"]] = {
+            "weight": way_weight,
+            "total_weight": way_weight * way_data["length"],
+            "start": node_a_data["pos"],
+            "end": node_b_data["pos"],
+        }
+        return node_weight + way_weight * way_data["length"]
 
     def estimate_time(self, way_data: dict) -> float:
         # Based on my average walking speed of 3.3 km/h
