@@ -238,7 +238,7 @@ class RouteCalculator:
             case "unclassified":
                 weight *= 4 if self.options.truthy("higher_traffic_roads") else 6
             case "residential":
-                weight *= 2
+                weight *= 3
             case "living_street":
                 weight *= 1.5
             case "service":
