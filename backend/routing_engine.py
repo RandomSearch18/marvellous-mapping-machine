@@ -297,7 +297,10 @@ class RouteCalculator:
         return 1  # TODO use weight_path()
 
     def calculate_node_weight(self, node_id: int) -> float:
-        node = self.graph.node(node_id)["tags"]
+        node = self.graph.node(node_id).get("tags")
+        if not node:
+            # Untagged node, so don't add any weight
+            return 0
         access = node.get("foot") or node.get("access")
         if access == "no":
             return inf
