@@ -5,6 +5,7 @@ import MainMap from "./MainMap"
 import RouteScreen from "./RouteScreen"
 import { currentRoute } from "./currentRoute.mts"
 import RouteInfoScreen from "./RouteInfoScreen"
+import OptionsScreen from "./options/OptionsScreen"
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
             })}
           </div>
           <div class="screen" data-screen="options">
-            Options screen!
+            <OptionsScreen />
           </div>
         </div>
         <BottomBar />
