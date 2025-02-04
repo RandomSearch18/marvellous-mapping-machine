@@ -1,3 +1,4 @@
+from math import inf
 import networkx
 import requests
 from route_result import Arrive, RoutePart, RouteProgression, RouteResult, StartWalking
@@ -287,8 +288,29 @@ class RouteCalculator:
             return pavement_weight
         return 1  # TODO use weight_path()
 
-    def calculate_node_weight(self, node: int) -> float:
-        return 0  # TODO
+    def calculate_node_weight(self, node_id: int) -> float:
+        node = self.graph.node(node_id)["tags"]
+        access = node.get("foot") or node.get("access")
+        if access == "no":
+            return inf
+        if access == "private" and not self.options.truthy("private_access"):
+            return inf
+        # Most barriers only block motor traffic, so we only consider those that generally block pedestrians.
+        # We assume (by default) that these barriers will be able to be opened by a pedestrian,
+        # unless tagged with locked=yes
+        if node.get("barrier") in ["gate", "sliding_gate", "wicket_gate"]:
+            if node.get("locked") == "yes":
+                return inf
+        # We assume that these barriers will be impassable to pedestrians
+        # unless explicitly tagged as open or unlocked
+        if node.get("barrier") in ["barrier_board"]:
+            explicitly_unlocked = node.get("locked") == "no" or node.get("open") in [
+                "yes",
+                "partial",
+            ]
+            if not explicitly_unlocked:
+                return inf
+        return 0
 
     def calculate_weight(self, node_a: int, node_b: int, way_data: OSMWayData) -> float:
         node_a_data = self.graph.node(node_a)
