@@ -1,5 +1,5 @@
 import OptionLine from "./OptionLine"
-import { optionsStore } from "./optionsStorage"
+import { options } from "./optionsStorage"
 
 function OptionsScreen() {
   return (
@@ -12,11 +12,11 @@ function OptionsScreen() {
           input={
             <input
               type="checkbox"
-              checked={optionsStore.app.weightOverlay}
+              checked={options.app.weightOverlay}
               class="checkbox checkbox-primary"
               onClick={(event) => {
                 if (!(event.target instanceof HTMLInputElement)) return
-                optionsStore.app.weightOverlay = event.target.checked
+                options.app.weightOverlay = event.target.checked
               }}
             />
           }

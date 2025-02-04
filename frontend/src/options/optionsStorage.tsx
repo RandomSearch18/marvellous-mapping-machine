@@ -24,10 +24,10 @@ function getInitialOptions(): Options {
   }
 }
 
-export const optionsStore = store<Options>(getInitialOptions())
+export const options = store<Options>(getInitialOptions())
 
 useEffect(() => {
-  const serializedOptions = JSON.stringify(optionsStore)
+  const serializedOptions = JSON.stringify(options)
   localStorage.setItem("options", serializedOptions)
   console.debug("Updated saved options:", serializedOptions)
 })

@@ -1,7 +1,8 @@
 import type { CircleOptions, Layer, Map, PolylineOptions, Popup } from "leaflet"
-import { $, useEffect } from "voby"
+import { $, $$, useEffect, useMemo } from "voby"
 import { currentRoute, SegmentDebugWeight } from "./currentRoute.mts"
 import { Coordinates, Line } from "./types.mts"
+import { options } from "./options/optionsStorage"
 
 export const leaflet = $<typeof import("leaflet")>()
 export const mainMap = $<Map>()
@@ -29,7 +30,7 @@ function MainMap() {
   return <div id="main-map"></div>
 }
 
-let layersForCurrentRoute: Layer[] = []
+let layersForCurrentRoute: (Layer | null)[] = []
 
 const waypointCircleOptions: CircleOptions = {
   radius: 4,
@@ -49,8 +50,9 @@ useEffect(() => {
   const map = mainMap()
   const route = currentRoute()
   if (!L || !map || !route) return
+  console.warn(options)
   layersForCurrentRoute.forEach((layer) => {
-    layer.remove()
+    $$(layer)?.remove()
   })
   layersForCurrentRoute = [
     // drawBbox(route.expandedBbox, {
@@ -60,7 +62,9 @@ useEffect(() => {
     // }),
     // drawBbox(route.unexpandedBbox, { color: "red" }),
     // Draw debugging lines showing weights
-    drawWeightLines(route.debug.segmentWeights),
+    options.app.weightOverlay
+      ? drawWeightLines(route.debug.segmentWeights)
+      : null,
     // Mark start and end points with circles
     drawCircle(
       route.start,
