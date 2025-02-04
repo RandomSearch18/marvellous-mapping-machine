@@ -12,7 +12,7 @@ function OptionsScreen() {
           input={
             <input
               type="checkbox"
-              checked={true}
+              checked={optionsStore.app.weightOverlay}
               class="checkbox checkbox-primary"
               onClick={(event) => {
                 if (!(event.target instanceof HTMLInputElement)) return
