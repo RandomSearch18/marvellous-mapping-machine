@@ -263,6 +263,14 @@ class RouteCalculator:
         return weight
 
     def calculate_way_weight(self, way: dict) -> float:
+        # Handle access tags
+        access = way.get("foot") or way.get("access")
+        if access == "no":
+            return inf
+        if access == "private" and not self.options.truthy("private_access"):
+            return inf
+
+        # First, try parsing the way data as a road
         base_weight_as_road = self.base_weight_road(way)
         if base_weight_as_road is not None:
             has_sidewalk = way_has_sidewalk(way)
