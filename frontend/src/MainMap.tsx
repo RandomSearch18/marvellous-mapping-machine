@@ -50,9 +50,8 @@ useEffect(() => {
   const map = mainMap()
   const route = currentRoute()
   if (!L || !map || !route) return
-  console.warn(options)
   layersForCurrentRoute.forEach((layer) => {
-    $$(layer)?.remove()
+    layer?.remove()
   })
   layersForCurrentRoute = [
     // drawBbox(route.expandedBbox, {
