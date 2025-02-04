@@ -3,7 +3,7 @@ import { usePy } from "./pyscript.mts"
 import { currentRoute } from "./currentRoute.mts"
 import { BboxTuple, Coordinates, Line, NominatimPlace } from "./types.mts"
 import { ValidationError } from "./validationError.mts"
-import { throttle } from "dettle"
+import { throttle } from "./throttle.mts"
 
 enum CalculationState {
   Idle,
