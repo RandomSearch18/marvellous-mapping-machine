@@ -225,6 +225,9 @@ async function calculateRoute() {
       .map((part) => [part.start.toJs(), part.end.toJs()] as Line),
     totalTime: route.total_time(),
     totalDistance: route.total_distance(),
+    debug: {
+      segmentWeights: calculator.segment_weights_js(),
+    },
   })
   routeCalculationProgress(CalculationState.Idle)
 }

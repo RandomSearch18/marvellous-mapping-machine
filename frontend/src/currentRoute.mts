@@ -13,6 +13,13 @@ export interface RoutePart {
   description(): string
 }
 
+export interface SegmentDebugWeight {
+  pos_a: Coordinates
+  pos_b: Coordinates
+  weight: number
+  total_weight: number
+}
+
 export interface CurrentRoute {
   unexpandedBbox: BboxTuple
   expandedBbox: BboxTuple
@@ -22,4 +29,7 @@ export interface CurrentRoute {
   lines: Line[]
   totalTime: number
   totalDistance: number
+  debug: {
+    segmentWeights: SegmentDebugWeight[]
+  }
 }

@@ -199,13 +199,21 @@ class RouteCalculator:
         self.options = options
         # Stores way weights as they are calculated, for debugging only
         self.way_weights = {}
+        self.segment_weights = {}
 
     def way_weights_js(self):
         try:
             from pyodide.ffi import to_js  # type: ignore
-        except ImportError:
-            raise ImportError("Must be running under Pyodide")
+        except ImportError as error:
+            raise ImportError("Must be running under Pyodide") from error
         return to_js(self.way_weights)
+
+    def segment_weights_js(self):
+        try:
+            from pyodide.ffi import to_js  # type: ignore
+        except ImportError as error:
+            raise ImportError("Must be running under Pyodide") from error
+        return to_js(list(self.segment_weights.values()))
 
     def add_implicit_tags(self, way: dict):
         if way.get("highway") == "motorway" or way.get("highway") == "motorway_link":
@@ -329,6 +337,7 @@ class RouteCalculator:
         self.add_implicit_tags(way_data["tags"])
         way_weight = self.calculate_way_weight(way_data["tags"])
         node_weight = self.calculate_node_weight(node_a)
+        # Making weight info available for debugging
         print(way_weight, way_data)
         if way_data["id"] in self.way_weights:
             # A bit of a hack: assumes that this function is called exactly once for each section (edge) of the way
@@ -339,9 +348,13 @@ class RouteCalculator:
             self.way_weights[way_data["id"]] = {
                 "weight": way_weight,
                 "total_weight": way_weight * way_data["length"],
-                "start": node_a_data["pos"],
-                "end": node_b_data["pos"],
             }
+        self.segment_weights[(node_a, node_b)] = {
+            "pos_a": self.graph.node_position(node_a),
+            "pos_b": self.graph.node_position(node_b),
+            "weight": way_weight,
+            "total_weight": way_weight * way_data["length"],
+        }
         return node_weight + way_weight * way_data["length"]
 
     def estimate_time(self, way_data: dict) -> float:
