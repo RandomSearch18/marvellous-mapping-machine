@@ -9,7 +9,7 @@ export type Options = {
 
 const defaultOptions: Options = {
   app: {
-    weightOverlay: true,
+    weightOverlay: false,
   },
 }
 
