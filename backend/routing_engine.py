@@ -270,6 +270,30 @@ class RouteCalculator:
                 return None
         return weight
 
+    def weight_path(self, way: dict) -> float | None:
+        path_highway_values = [
+            "footway",
+            "bridleway",
+            "steps",
+            "corridor",
+            "path",
+            "cycleway",
+            "track",
+            "pedestrian",
+        ]
+        if way.get("highway") not in path_highway_values:
+            return None
+        maintained = 0
+        if way == "steps":
+            # TODO
+            pass
+        if way.get("highway") in ["footway", "cycleway", "pedestrian"]:
+            maintained = 1
+        if way.get("operator"):
+            maintained = 1
+        if way.get("informal") == "yes":
+            maintained = -1
+
     def calculate_way_weight(self, way: dict) -> float:
         # Handle access tags
         access = way.get("foot") or way.get("access")
