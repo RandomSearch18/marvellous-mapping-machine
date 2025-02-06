@@ -1,4 +1,5 @@
 from math import inf
+from warnings import warn
 import networkx
 import requests
 from route_result import Arrive, RoutePart, RouteProgression, RouteResult, StartWalking
@@ -10,6 +11,7 @@ from osm_data_types import (
     OSMWayData,
     way_has_sidewalk,
     way_maxspeed_mph,
+    way_width_meters,
 )
 from geographiclib.geodesic import Geodesic
 
@@ -293,23 +295,31 @@ class RouteCalculator:
         if way.get("highway") not in path_highway_values:
             return None
         weight = 1
-        maintained = 0
+        # We will update this if we have decided to assume that a path is
+        # inaccessible to wheelchairs (-1) or suitable for wheelchairs (1)
         wheelchair_suitable = 0
         if way.get("highway") == "steps":
             wheelchair_suitable = -1
             # TODO
             pass
+        # We might guess the value of trail_visibility=*
+        trail_visibility_default = None
+        # Our guess for if a path is "officially" maintained or not
+        maintained = 0
         if way.get("highway") in ["footway", "cycleway", "pedestrian"]:
             maintained = 1
             wheelchair_suitable = 1
+        if way.get("designation"):
+            maintained = 1
         if way.get("operator"):
             maintained = 1
         if way.get("informal") == "yes":
             maintained = -1
         if maintained == 1:
-            weight *= 0.95
+            trail_visibility_default = "excellent"
         if maintained == -1:
             weight *= 1.05
+        # Parse sac_scale=*
         sac_scale = way.get("sac_scale")
         match sac_scale:
             case "strolling":
@@ -340,6 +350,72 @@ class RouteCalculator:
             case "demanding_alpine_hiking" | "difficult_alpine_hiking":
                 wheelchair_suitable = -1
                 weight = inf
+            case None:
+                pass
+            case _:
+                warn(f"Ignoring unknown value sac_scale={sac_scale}")
+        # Parse trail_visibility=*
+        trail_visibility = way.get("trail_visibility", trail_visibility_default)
+        match trail_visibility:
+            case "excellent":
+                weight *= 0.9
+            case "good":
+                weight *= 1.02
+            case "intermediate" | "bad" | "horrible" | "no":
+                weight *= 1.05
+                # TODO: Warn the user that this section of the route has poor trail visibility
+            case None:
+                pass
+            case _:
+                warn(f"Ignoring unknown value trail_visibility={trail_visibility}")
+        # Parse trailblazed=*
+        trailblazed = way.get("trailblazed")
+        if trailblazed is not None and trailblazed != "no":
+            weight *= 0.91
+        # Parse width=*
+        width = way_width_meters(way)
+        if width is not None:
+            if width < 0.20:
+                # 20cm gap is probably impassable!
+                weight = inf
+            elif width > 5:
+                weight *= 0.9
+            elif width > 2:
+                weight *= 0.975
+        # Parse designation=*
+        designation = way.get("designation")
+        match designation:
+            case "public_footpath" | "public_bridleway" | "restricted_byway":
+                weight *= 0.9
+            case "byway_open_to_all_traffic":
+                weight *= 0.95
+            case "public_right_of_way":
+                weight *= 0.91
+            case "core_path":
+                # Scotland!
+                weight *= 0.9
+        segregated = way.get("segregated")
+        match segregated:
+            case "yes":
+                weight *= 0.98
+            case "no":
+                weight *= 1.02
+        obstacle = way.get("obstacle")
+        match obstacle:
+            case "vegetation":
+                weight *= 1.10
+        wheelchair = way.get("wheelchair", "yes" if wheelchair_suitable == 1 else "no")
+        if self.options.positive("wheelchair_accessible"):
+            match wheelchair:
+                case "yes":
+                    weight *= 0.9
+                case "no":
+                    weight *= 100
+                case "limited":
+                    weight *= 0.96
+                case "designated":
+                    weight *= 0.89
+        return weight
 
     def calculate_way_weight(self, way: dict) -> float:
         # Handle access tags

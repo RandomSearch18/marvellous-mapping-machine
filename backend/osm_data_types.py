@@ -132,3 +132,33 @@ def way_maxspeed_mph(way: dict[str, str]) -> float | None:
         case _:
             warnings.warn(f"Invalid tag format: maxspeed={value}")
             return None
+
+
+def way_width_meters(way: dict[str, str]) -> float | None:
+    """Parses the width=* tag, falling back to est_width=* if not present"""
+    value = way.get("width") or way.get("est_width")
+    if not value:
+        return None
+    normalised_value = value.strip().lower()
+    match normalised_value.split(" "):
+        case [width, unit]:
+            match unit:
+                case "m" | "meters" | "metres" | "meter" | "metre":
+                    try:
+                        return float(width)
+                    except ValueError as e:
+                        warnings.warn(f"Invalid width: {e}")
+                        return None
+                case _:
+                    # TODO: Implement other units
+                    warnings.warn(f"Ignoring quantity with unit {unit}")
+                    return None
+        case [width]:
+            try:
+                return float(width)
+            except ValueError as e:
+                warnings.warn(f"Invalid width: {e}")
+                return None
+        case _:
+            warnings.warn(f"Invalid tag format: width={value}")
+            return None
