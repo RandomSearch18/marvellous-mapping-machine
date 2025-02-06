@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "@pyscript/core": "^0.6.24",
-    "dettle": "^1.0.5",
     "leaflet": "^1.9.4",
     "voby": "^0.58.1"
   },
