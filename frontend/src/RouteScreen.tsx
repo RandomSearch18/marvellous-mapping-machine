@@ -3,7 +3,7 @@ import { usePy } from "./pyscript.mts"
 import { currentRoute } from "./currentRoute.mts"
 import { BboxTuple, Coordinates, Line, NominatimPlace } from "./types.mts"
 import { ValidationError } from "./validationError.mts"
-import { throttle } from "./throttle.mts"
+import { throttle, CANCELLED } from "./throttle.mts"
 
 enum CalculationState {
   Idle,
@@ -72,6 +72,8 @@ function parseSimpleCoordinates(input: string): Coordinates | null {
   return [lat, lon]
 }
 
+const geocodeAddressThrottled = throttle(geocodeAddress, 1000)
+
 async function geocodeAddress(address: string): Promise<NominatimPlace | null> {
   const url = new URL("https://nominatim.openstreetmap.org/search")
   url.searchParams.append("q", address)
@@ -85,29 +87,19 @@ async function geocodeAddress(address: string): Promise<NominatimPlace | null> {
   return place
 }
 
-// async function displayResolvedAddress(inputId: string) {
-//   const input = document.getElementById(inputId)
-//   if (!(input instanceof HTMLInputElement))
-//     throw new Error(`Input element #${inputId} not found`)
-//   const address = input.value
-//   if (!address) return alert("No address provided")
-//   const place = await geocodeAddress(address)
-//   if (!place) return alert(`Couldn't find address: ${address}`)
-//   alert(
-//     `Address:\n${place.display_name}\n\nCoordinates: ${place.lat}, ${place.lon}`
-//   )
-// }
-
-const sendReq = () => {
-  console.log("Fire request!", new Date())
-  return 5
-}
-
-const sendReqThrottled = throttle(sendReq, 1000)
-
 async function displayResolvedAddress(inputId: string) {
-  const res = sendReqThrottled()
-  console.log("Response:", res)
+  const input = document.getElementById(inputId)
+  if (!(input instanceof HTMLInputElement))
+    throw new Error(`Input element #${inputId} not found`)
+  const address = input.value
+  if (!address) return alert("No address provided")
+  const geocodingResponse = geocodeAddressThrottled(address)
+  if (geocodingResponse === CANCELLED) return console.warn("Ignoring geocoding request due to throttling")
+  const place = await geocodingResponse
+  if (!place) return alert(`Couldn't find address: ${address}`)
+  alert(
+    `Address:\n${place.display_name}\n\nCoordinates: ${place.lat}, ${place.lon}`
+  )
 }
 
 async function getCoordsFromInput(inputId: string): Promise<Coordinates> {
