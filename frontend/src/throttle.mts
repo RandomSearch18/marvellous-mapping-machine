@@ -1,4 +1,4 @@
-// Credit: https://stackoverflow.com/a/27078401, CC BY-SA 4.0
+// Credit: Based on https://stackoverflow.com/a/27078401, CC BY-SA 4.0
 export const CANCELLED = Symbol("throttle-cancelled")
 
 export function throttle(callback, limit) {
