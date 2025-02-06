@@ -4,12 +4,14 @@ export type Options = {
   /** Frontend-only options */
   app: {
     weightOverlay: boolean
+    bboxOverlay: boolean
   }
 }
 
 const defaultOptions: Options = {
   app: {
     weightOverlay: false,
+    bboxOverlay: false,
   },
 }
 

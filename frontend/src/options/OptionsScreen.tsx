@@ -22,12 +22,16 @@ function OptionsScreen() {
           }
         />
         <OptionLine
-          label="More options coming soon"
+          label="Show bounding boxes for downloaded data"
           input={
             <input
               type="checkbox"
-              checked={true}
+              checked={options.app.bboxOverlay}
               class="checkbox checkbox-primary"
+              onClick={(event) => {
+                if (!(event.target instanceof HTMLInputElement)) return
+                options.app.bboxOverlay = event.target.checked
+              }}
             />
           }
         />

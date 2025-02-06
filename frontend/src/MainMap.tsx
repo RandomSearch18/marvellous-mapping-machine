@@ -54,12 +54,14 @@ useEffect(() => {
     layer?.remove()
   })
   layersForCurrentRoute = [
-    // drawBbox(route.expandedBbox, {
-    //   color: "green",
-    //   fillOpacity: 0.1,
-    //   fill: false,
-    // }),
-    // drawBbox(route.unexpandedBbox, { color: "red" }),
+    // Debug overlay for the extent of the downloaded data
+    options.app.bboxOverlay
+      ? drawBbox(route.expandedBbox, {
+          color: "green",
+          fillOpacity: 0.1,
+          fill: false,
+        })
+      : null,
     // Draw debugging lines showing weights
     options.app.weightOverlay
       ? drawWeightLines(route.debug.segmentWeights)
