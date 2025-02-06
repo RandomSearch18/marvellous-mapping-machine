@@ -72,6 +72,15 @@ class RoutingOptions:
     def truthy(self, key: str) -> bool:
         return False  # TODO
 
+    def neutral(self, key: str) -> bool:
+        return True  # TODO
+
+    def positive(self, key: str) -> bool:
+        return False  # TODO
+
+    def negative(self, key: str) -> bool:
+        return False  # TODO
+
 
 """##### Weight calculation pseudocode
 
@@ -283,16 +292,54 @@ class RouteCalculator:
         ]
         if way.get("highway") not in path_highway_values:
             return None
+        weight = 1
         maintained = 0
-        if way == "steps":
+        wheelchair_suitable = 0
+        if way.get("highway") == "steps":
+            wheelchair_suitable = -1
             # TODO
             pass
         if way.get("highway") in ["footway", "cycleway", "pedestrian"]:
             maintained = 1
+            wheelchair_suitable = 1
         if way.get("operator"):
             maintained = 1
         if way.get("informal") == "yes":
             maintained = -1
+        if maintained == 1:
+            weight *= 0.95
+        if maintained == -1:
+            weight *= 1.05
+        sac_scale = way.get("sac_scale")
+        match sac_scale:
+            case "strolling":
+                weight *= 0.9
+                wheelchair_suitable = 1
+            case "hiking":
+                weight *= 1
+            case "mountain_hiking":
+                weight *= 2.5
+                wheelchair_suitable = -1
+            case "demanding_mountain_hiking":
+                wheelchair_suitable = -1
+                if self.options.positive("treacherous_paths"):
+                    # You maniac
+                    weight *= 0.99
+                elif self.options.negative("treacherous_paths"):
+                    weight *= 10
+                else:
+                    weight *= 3
+            case "alpine_hiking":
+                wheelchair_suitable = -1
+                if self.options.positive("treacherous_paths"):
+                    weight *= 20
+                elif self.options.negative("treacherous_paths"):
+                    weight *= 1000
+                else:
+                    weight *= 30
+            case "demanding_alpine_hiking" | "difficult_alpine_hiking":
+                wheelchair_suitable = -1
+                weight = inf
 
     def calculate_way_weight(self, way: dict) -> float:
         # Handle access tags
