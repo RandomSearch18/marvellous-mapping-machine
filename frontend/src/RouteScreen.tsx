@@ -80,7 +80,12 @@ async function geocodeAddress(address: string): Promise<NominatimPlace | null> {
   url.searchParams.append("format", "jsonv2")
   url.searchParams.append("limit", "1")
   url.searchParams.append("countrycodes", "gb")
-  const data = await fetch(url).then((response) => response.json())
+  const userAgentParts = ["MarvellousMappingMachine/0.3", navigator.userAgent]
+  const data = await fetch(url, {
+    headers: {
+      "User-Agent": userAgentParts.join(" "),
+    },
+  }).then((response) => response.json())
   if (!data.length) return null
   const place = data[0] as NominatimPlace
   console.debug("Found place", place)
@@ -94,7 +99,8 @@ async function displayResolvedAddress(inputId: string) {
   const address = input.value
   if (!address) return alert("No address provided")
   const geocodingResponse = geocodeAddressThrottled(address)
-  if (geocodingResponse === CANCELLED) return console.warn("Ignoring geocoding request due to throttling")
+  if (geocodingResponse === CANCELLED)
+    return console.warn("Ignoring geocoding request due to throttling")
   const place = await geocodingResponse
   if (!place) return alert(`Couldn't find address: ${address}`)
   alert(
