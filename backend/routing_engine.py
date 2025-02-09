@@ -438,6 +438,7 @@ class RouteCalculator:
         base_weight_as_road = self.base_weight_road(way)
         if base_weight_as_road is not None:
             has_sidewalk = way_has_sidewalk(way)
+            sidewalk_guessed = False
             if has_sidewalk is None:
                 # Sidewalk tags not present, so guess based off of road type
                 has_sidewalk = way.get("highway") in [
@@ -448,16 +449,22 @@ class RouteCalculator:
                     "residential",
                     "unclassified",
                 ]
+                sidewalk_guessed = True
             if has_sidewalk == "no":
                 # We're walking on the road carriageway
                 additional_factors = 1  # TODO
                 return base_weight_as_road * additional_factors
-            pavement_weight = self.weight_path(
-                {
-                    "highway": "footway",
-                    "footway": "sidewalk",
-                    "surface": "asphalt",
-                }
+            pavement_weight = (
+                self.weight_path(
+                    {
+                        "highway": "footway",
+                        "footway": "sidewalk",
+                        "surface": "asphalt",
+                    }
+                )
+                if not sidewalk_guessed
+                # Deprioritize ways where we're just assuming a sidewalk is present
+                else 1.2
             )
             if pavement_weight is None:
                 warn("Failed to calculate pavement weight (this is a bug)")
