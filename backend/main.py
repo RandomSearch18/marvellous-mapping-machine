@@ -90,9 +90,9 @@ if __name__ == "__main__":
         calculator = RouteCalculator(routing_graph, RoutingOptions())
         print("Calculating route")
         # start = 51.273330, -0.397460
-        start = 51.27347, -0.397916
+        start = +51.27347, -0.397916
         # end = 51.274179, -0.391324
-        end = 51.270013, -0.389408
+        end = +51.268984, -0.394485
         route = calculator.calculate_route_a_star(start, end)
         print(
             f"Route with {len(route.parts)} parts, {route.total_distance():.0f} meters, {route.total_time():.0f} seconds"

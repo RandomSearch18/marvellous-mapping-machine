@@ -209,6 +209,7 @@ async function calculateRoute() {
   await tickUI()
   const route = calculator.calculate_route_a_star(startPos, endPos)
   const timeElapsed = performance.now() - performanceStart
+  console.debug("Route calculator", calculator)
   console.log(
     `Calculated route with ${route.parts.length} parts ` +
       `in ${timeElapsed.toLocaleString()} ms`
@@ -224,6 +225,9 @@ async function calculateRoute() {
       .map((part) => [part.start.toJs(), part.end.toJs()] as Line),
     totalTime: route.total_time(),
     totalDistance: route.total_distance(),
+    debug: {
+      segmentWeights: calculator.segment_weights_js(),
+    },
   })
   routeCalculationProgress(CalculationState.Idle)
 }

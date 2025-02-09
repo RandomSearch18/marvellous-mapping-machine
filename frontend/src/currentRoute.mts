@@ -4,14 +4,20 @@ import { BboxTuple, Coordinates, Line } from "./types.mts"
 export const currentRoute = $<CurrentRoute>()
 
 useEffect(() => {
-  console.log("Current route:", currentRoute())
+  console.debug("Current route:", currentRoute())
 })
-console.log("USED effect")
 
 export interface RoutePart {
   distance: number
   estimated_time: number
   description(): string
+}
+
+export interface SegmentDebugWeight {
+  pos_a: Coordinates
+  pos_b: Coordinates
+  weight: number
+  total_weight: number
 }
 
 export interface CurrentRoute {
@@ -23,4 +29,7 @@ export interface CurrentRoute {
   lines: Line[]
   totalTime: number
   totalDistance: number
+  debug: {
+    segmentWeights: SegmentDebugWeight[]
+  }
 }

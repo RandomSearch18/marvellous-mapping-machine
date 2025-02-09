@@ -10,11 +10,15 @@
     "footway",
     "geographiclib",
     "jsonv2",
+    "layby",
     "maskable",
+    "maxspeed",
     "Mish's",
     "networkx",
     "osmnx",
+    "pyodide",
     "pyscript",
+    "sidewalk",
     "voby",
     "workbox"
   ]

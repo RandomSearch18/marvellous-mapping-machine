@@ -1,7 +1,16 @@
+from math import inf
 import networkx
 import requests
 from route_result import Arrive, RoutePart, RouteProgression, RouteResult, StartWalking
-from osm_data_types import BoundingBox, Coordinates, OSMNode, OSMWay
+from osm_data_types import (
+    BoundingBox,
+    Coordinates,
+    OSMNode,
+    OSMWay,
+    OSMWayData,
+    way_has_sidewalk,
+    way_maxspeed_mph,
+)
 from geographiclib.geodesic import Geodesic
 
 geodesic_wgs84: Geodesic = Geodesic.WGS84  # type: ignore
@@ -60,17 +69,293 @@ class RoutingGraph:
 
 
 class RoutingOptions:
-    pass
+    def truthy(self, key: str) -> bool:
+        return False  # TODO
+
+
+"""##### Weight calculation pseudocode
+
+- add_implicit_tags(node):
+  - if highway == motorway:
+    - set default foot=no
+  - if service == driveway:
+    - set default access=private
+  - if service == parking_aisle:
+    - set default foot=yes (unless access!=yes)
+  - if service == emergency_access:
+    - set default access=no
+  - if service == bus:
+    - set default foot=no
+- calculate_weight(node_a, node_b, way):
+  - add_implicit_tags(way)
+  - return calculate_node_weight(node_a) + calculate_way_weight(way) * way.length
+- base_weight_road(way):
+  - weight = 1
+  - if way["highway"] == "motorway" or way["highway"] == "motorway_link":
+    - weight *= 50,000
+  - elif way["highway"] == "trunk" or way["highway"] == "trunk_link":
+    - weight *= 10,000
+  - elif way["highway"] == "primary" or way["highway"] == "primary_link":
+    - weight *= 20
+  - elif way["highway"] == "secondary" or way["highway"] == "secondary_link":
+    - weight *= 15
+  - elif way["highway"] == "tertiary" or way["highway"] == "tertiary_link":
+    - weight *= 5 if options["higher_traffic_roads"] else 10
+  - elif way["highway"] == "unclassified":
+    - weight *= 4 if options["higher_traffic_roads"] else 6
+  - elif way["highway"] == "residential":
+    - weight *= 2
+  - elif way["highway"] == "living_street":
+    - weight *= 1.5
+  - elif way["highway"] == "service":
+    - if way["service"] == "driveway":
+      - weight *= 1
+    - elif way["service"] == "parking_aisle" or way["service"] == "parking":
+      - weight *= 2
+    - elif way["service"] == "alley":
+      - weight *= 1.3
+    - elif way["service"] == "drive_through":
+      - weight *= 5
+    - elif way["service"] == "slipway":
+      - weight *= 7
+    - elif way["service"] == "layby":
+      - weight *= 1.75
+    - else:
+      - weight *= 2
+  - else:
+    - return None
+  - elif way["highway"] == "pedestrian":
+    - weight *= 0.8
+  - elif way["highway"] == "track":
+    - weight *= 1.5
+- additional_weight_road(way):
+  - factor = 1
+  - if way["lanes"] >= 2:
+    - factor *= 1.1
+  - if way["shoulder"] == "yes":
+    - factor *= 0.9
+  - if way["verge"] == "yes":
+    - factor *= 0.95
+  - return factor
+- weight_addition_for_steps(way):
+
+  - if step_count < 4:
+    - return 0.05
+  - if conveying is truthy:
+    - return 0
+  - weight = 0.3
+  - has_ramp = ramp == yes (and the ramp isn't a non-walkable ramp)
+  - has_handrail = handrail (or handrail on a specific side) == yes
+  - if has_ramp:
+    - weight -= 0.1
+  - if has_handrail:
+    - weight -= 0.05
+  - return weight
+
+- weight_path(way):
+  - if way["highway"] not in ["footway", "bridleway", "steps", "corridor", "path", "cycleway", "track", "pedestrian"]:
+    - return None
+  - maintained = 0
+  - if highway==steps: add weight_addition_for_steps(way) to weight
+  - if highway == one of "footway", "cycleway", "pedestrian":
+    - maintained = 1
+  - if operator is present:
+    - maintained = 1
+  - if informal == yes:
+    - maintained = -1
+- calculate_way_weight(way):
+  - base_weight_as_road = base_weight_road(way)
+  - if base_weight_as_road is not None:
+    - if way doesn't have pavement:
+      - additional_factors = additional_weight_roads(way)
+      - return base_weight_as_road * additional_factors
+    - if way does have pavement:
+      - pavement_weight = 1
+      - reduce weight if maxspeed < 20 mph
+      - increase weight if maxspeed > 50 mph
+      - return pavement_weight
+  - weight_as_path = weight_path(way)
+  - if weight_as_path is not None:
+    - return weight_as_path
+  - if way["highway"] == "road":
+    - raise a warning for invalid/incomplete data
+    - return 1
+  - return infinity
+- calculate_node_weight(node):
+  - access = node["foot"] || node["access"]
+  - if access == "no":
+    - return infinity
+  - if access == "private" && !options["private_access"]:
+    - return infinity
+  - if node["barrier"] == "gate" (or similar):
+    - if node["locked"] == "yes":
+      - return infinity
+  - return 0"""
 
 
 class RouteCalculator:
     def __init__(self, graph: RoutingGraph, options: RoutingOptions):
         self.graph = graph
         self.options = options
+        # Stores way weights as they are calculated, for debugging only
+        self.way_weights = {}
+        self.segment_weights = {}
 
-    def calculate_weight(self, node_a: int, node_b: int, data: dict[str, str]) -> float:
-        # TODO: do
-        return float(data["length"])
+    def way_weights_js(self):
+        try:
+            from pyodide.ffi import to_js  # type: ignore
+        except ImportError as error:
+            raise ImportError("Must be running under Pyodide") from error
+        return to_js(self.way_weights)
+
+    def segment_weights_js(self):
+        try:
+            from pyodide.ffi import to_js  # type: ignore
+        except ImportError as error:
+            raise ImportError("Must be running under Pyodide") from error
+        return to_js(list(self.segment_weights.values()))
+
+    def add_implicit_tags(self, way: dict):
+        if way.get("highway") == "motorway" or way.get("highway") == "motorway_link":
+            way.setdefault("foot", "no")
+        if way.get("service") == "driveway":
+            way.setdefault("access", "private")
+        if way.get("service") == "parking_aisle":
+            # assumes access=yes if access=* isn't present
+            if (not way.get("access")) or way.get("access") == "yes":
+                way.setdefault("foot", "yes")
+        if way.get("service") == "emergency_access":
+            way.setdefault("access", "no")
+        if way.get("service") == "bus":
+            way.setdefault("foot", "no")
+
+    def base_weight_road(self, way: dict) -> float | None:
+        # In the future we might want consider additional factors in this method,
+        # hence the logic where we start with a weight of 1 and multiply it.
+        weight = 1
+        match way.get("highway"):
+            case "motorway" | "motorway_link":
+                weight *= 50_000
+            case "trunk" | "trunk_link":
+                weight *= 10_000
+            case "primary" | "primary_link":
+                weight *= 20
+            case "secondary" | "secondary_link":
+                weight *= 15
+            case "tertiary" | "tertiary_link":
+                weight *= 5 if self.options.truthy("higher_traffic_roads") else 10
+            case "unclassified":
+                weight *= 4 if self.options.truthy("higher_traffic_roads") else 6
+            case "residential":
+                weight *= 3
+            case "living_street":
+                weight *= 1.5
+            case "service":
+                match way.get("service"):
+                    case "driveway":
+                        weight *= 1
+                    case "parking_aisle" | "parking":
+                        weight *= 2
+                    case "alley":
+                        weight *= 1.3
+                    case "drive_through":
+                        weight *= 5
+                    case "slipway":
+                        weight *= 7
+                    case "layby":
+                        weight *= 1.75
+                    case _:
+                        weight *= 2
+            case _:
+                return None
+        return weight
+
+    def calculate_way_weight(self, way: dict) -> float:
+        # Handle access tags
+        access = way.get("foot") or way.get("access")
+        if access == "no":
+            return inf
+        if access == "private" and not self.options.truthy("private_access"):
+            return inf
+
+        # First, try parsing the way data as a road
+        base_weight_as_road = self.base_weight_road(way)
+        if base_weight_as_road is not None:
+            has_sidewalk = way_has_sidewalk(way)
+            if has_sidewalk is None:
+                # Sidewalk tags not present, so guess based off of road type
+                has_sidewalk = way.get("highway") in [
+                    "trunk",
+                    "primary",
+                    "secondary",
+                    "tertiary",
+                    "residential",
+                    "unclassified",
+                ]
+            if has_sidewalk == "no":
+                # We're walking on the road carriageway
+                additional_factors = 1  # TODO
+                return base_weight_as_road * additional_factors
+            pavement_weight = 1  # TODO: use weight_path()
+            # Improve or worsen the weight for walking along a pavement according to the road's maxspeed
+            maxspeed_value = way_maxspeed_mph(way)
+            if maxspeed_value and maxspeed_value >= 60:
+                pavement_weight *= 1.1
+            return pavement_weight
+        return 1  # TODO use weight_path()
+
+    def calculate_node_weight(self, node_id: int) -> float:
+        node = self.graph.node(node_id).get("tags")
+        if not node:
+            # Untagged node, so don't add any weight
+            return 0
+        access = node.get("foot") or node.get("access")
+        if access == "no":
+            return inf
+        if access == "private" and not self.options.truthy("private_access"):
+            return inf
+        # Most barriers only block motor traffic, so we only consider those that generally block pedestrians.
+        # We assume (by default) that these barriers will be able to be opened by a pedestrian,
+        # unless tagged with locked=yes
+        if node.get("barrier") in ["gate", "sliding_gate", "wicket_gate"]:
+            if node.get("locked") == "yes":
+                return inf
+        # We assume that these barriers will be impassable to pedestrians
+        # unless explicitly tagged as open or unlocked
+        if node.get("barrier") in ["barrier_board"]:
+            explicitly_unlocked = node.get("locked") == "no" or node.get("open") in [
+                "yes",
+                "partial",
+            ]
+            if not explicitly_unlocked:
+                return inf
+        return 0
+
+    def calculate_weight(self, node_a: int, node_b: int, way_data: OSMWayData) -> float:
+        node_a_data = self.graph.node(node_a)
+        node_b_data = self.graph.node(node_b)
+        self.add_implicit_tags(way_data["tags"])
+        way_weight = self.calculate_way_weight(way_data["tags"])
+        node_weight = self.calculate_node_weight(node_a)
+        # Making weight info available for debugging
+        print(way_weight, way_data)
+        if way_data["id"] in self.way_weights:
+            # A bit of a hack: assumes that this function is called exactly once for each section (edge) of the way
+            self.way_weights[way_data["id"]]["total_weight"] += (
+                way_weight * way_data["length"]
+            )
+        else:
+            self.way_weights[way_data["id"]] = {
+                "weight": way_weight,
+                "total_weight": way_weight * way_data["length"],
+            }
+        self.segment_weights[(node_a, node_b)] = {
+            "pos_a": self.graph.node_position(node_a),
+            "pos_b": self.graph.node_position(node_b),
+            "weight": way_weight,
+            "total_weight": way_weight * way_data["length"],
+        }
+        return node_weight + way_weight * way_data["length"]
 
     def estimate_time(self, way_data: dict) -> float:
         # Based on my average walking speed of 3.3 km/h

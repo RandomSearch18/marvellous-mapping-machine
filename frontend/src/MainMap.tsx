@@ -1,7 +1,8 @@
 import type { CircleOptions, Layer, Map, PolylineOptions, Popup } from "leaflet"
-import { $, useEffect } from "voby"
-import { currentRoute } from "./currentRoute.mts"
+import { $, $$, useEffect, useMemo } from "voby"
+import { currentRoute, SegmentDebugWeight } from "./currentRoute.mts"
 import { Coordinates, Line } from "./types.mts"
+import { options } from "./options/optionsStorage"
 
 export const leaflet = $<typeof import("leaflet")>()
 export const mainMap = $<Map>()
@@ -29,7 +30,7 @@ function MainMap() {
   return <div id="main-map"></div>
 }
 
-let layersForCurrentRoute: Layer[] = []
+let layersForCurrentRoute: (Layer | null)[] = []
 
 const waypointCircleOptions: CircleOptions = {
   radius: 4,
@@ -50,15 +51,21 @@ useEffect(() => {
   const route = currentRoute()
   if (!L || !map || !route) return
   layersForCurrentRoute.forEach((layer) => {
-    layer.remove()
+    layer?.remove()
   })
   layersForCurrentRoute = [
-    // drawBbox(route.expandedBbox, {
-    //   color: "green",
-    //   fillOpacity: 0.1,
-    //   fill: false,
-    // }),
-    // drawBbox(route.unexpandedBbox, { color: "red" }),
+    // Debug overlay for the extent of the downloaded data
+    options.app.bboxOverlay
+      ? drawBbox(route.expandedBbox, {
+          color: "green",
+          fillOpacity: 0.1,
+          fill: false,
+        })
+      : null,
+    // Draw debugging lines showing weights
+    options.app.weightOverlay
+      ? drawWeightLines(route.debug.segmentWeights)
+      : null,
     // Mark start and end points with circles
     drawCircle(
       route.start,
@@ -73,13 +80,46 @@ useEffect(() => {
     // Draw line to start point
     drawStraightLine(route.start, route.lines[0][0], waypointLineOptions),
     // Draw the actual route
-    drawLines(route.lines, { color: "#9d174d", opacity: 0.5 }),
+    drawLines(route.lines, {
+      color: "#9d174d",
+      opacity: 0.5,
+      weight: 3,
+      interactive: false,
+    }),
     // Draw line to end point
     drawStraightLine(route.end, route.lines.at(-1)![1], waypointLineOptions),
   ]
-
-  console.log(route.lines)
 })
+
+function drawWeightLines(segments: SegmentDebugWeight[]) {
+  const L = leaflet()
+  const map = mainMap()
+  if (!L || !map) throw new Error("Main map not initialised")
+  const layer = L.layerGroup()
+  const lines = segments.map((segment) => {
+    const weight = segment.weight
+    const hue = 360 - (weight / 10) * 360
+    const color = `hsl(${hue}, 100%, 50%)`
+    const line = L.polyline([segment.pos_a, segment.pos_b], {
+      color,
+      weight: 5,
+      opacity: 0.5,
+    })
+    line.bindPopup(
+      `Weight: ${weight.toFixed(2)} (${segment.total_weight.toFixed(2)})`
+    )
+    line.addEventListener("popupopen", () => {
+      line.setStyle({ weight: 20 })
+    })
+    line.addEventListener("popupclose", () => {
+      line.setStyle({ weight: 5 })
+    })
+    return line
+  })
+  lines.forEach((line) => line.addTo(layer))
+  layer.addTo(map)
+  return layer
+}
 
 export function drawBbox(
   bbox: [number, number, number, number],
