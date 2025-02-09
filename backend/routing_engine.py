@@ -443,13 +443,32 @@ class RouteCalculator:
                 # We're walking on the road carriageway
                 additional_factors = 1  # TODO
                 return base_weight_as_road * additional_factors
-            pavement_weight = 1  # TODO: use weight_path()
+            pavement_weight = self.weight_path(
+                {
+                    "highway": "footway",
+                    "footway": "sidewalk",
+                    "surface": "asphalt",
+                }
+            )
+            if pavement_weight is None:
+                warn("Failed to calculate pavement weight (this is a bug)")
+                pavement_weight = 1
             # Improve or worsen the weight for walking along a pavement according to the road's maxspeed
             maxspeed_value = way_maxspeed_mph(way)
             if maxspeed_value and maxspeed_value >= 60:
                 pavement_weight *= 1.1
             return pavement_weight
-        return 1  # TODO use weight_path()
+
+        # If it's not a road, try parsing as a path
+        weight_as_path = self.weight_path(way)
+        if weight_as_path is not None:
+            return weight_as_path
+        if way.get("highway") == "road":
+            warn("Encountered highway=road way")
+            return 1
+
+        # If it doesn't match any of the above, consider it unroutable
+        return inf
 
     def calculate_node_weight(self, node_id: int) -> float:
         node = self.graph.node(node_id).get("tags")
