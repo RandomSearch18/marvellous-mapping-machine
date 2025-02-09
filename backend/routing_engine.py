@@ -1,4 +1,5 @@
 from math import inf
+from warnings import warn
 import networkx
 import requests
 from route_result import Arrive, RoutePart, RouteProgression, RouteResult, StartWalking
@@ -9,7 +10,9 @@ from osm_data_types import (
     OSMWay,
     OSMWayData,
     way_has_sidewalk,
+    way_incline_gradient,
     way_maxspeed_mph,
+    way_width_meters,
 )
 from geographiclib.geodesic import Geodesic
 
@@ -72,125 +75,14 @@ class RoutingOptions:
     def truthy(self, key: str) -> bool:
         return False  # TODO
 
+    def neutral(self, key: str) -> bool:
+        return True  # TODO
 
-"""##### Weight calculation pseudocode
+    def positive(self, key: str) -> bool:
+        return False  # TODO
 
-- add_implicit_tags(node):
-  - if highway == motorway:
-    - set default foot=no
-  - if service == driveway:
-    - set default access=private
-  - if service == parking_aisle:
-    - set default foot=yes (unless access!=yes)
-  - if service == emergency_access:
-    - set default access=no
-  - if service == bus:
-    - set default foot=no
-- calculate_weight(node_a, node_b, way):
-  - add_implicit_tags(way)
-  - return calculate_node_weight(node_a) + calculate_way_weight(way) * way.length
-- base_weight_road(way):
-  - weight = 1
-  - if way["highway"] == "motorway" or way["highway"] == "motorway_link":
-    - weight *= 50,000
-  - elif way["highway"] == "trunk" or way["highway"] == "trunk_link":
-    - weight *= 10,000
-  - elif way["highway"] == "primary" or way["highway"] == "primary_link":
-    - weight *= 20
-  - elif way["highway"] == "secondary" or way["highway"] == "secondary_link":
-    - weight *= 15
-  - elif way["highway"] == "tertiary" or way["highway"] == "tertiary_link":
-    - weight *= 5 if options["higher_traffic_roads"] else 10
-  - elif way["highway"] == "unclassified":
-    - weight *= 4 if options["higher_traffic_roads"] else 6
-  - elif way["highway"] == "residential":
-    - weight *= 2
-  - elif way["highway"] == "living_street":
-    - weight *= 1.5
-  - elif way["highway"] == "service":
-    - if way["service"] == "driveway":
-      - weight *= 1
-    - elif way["service"] == "parking_aisle" or way["service"] == "parking":
-      - weight *= 2
-    - elif way["service"] == "alley":
-      - weight *= 1.3
-    - elif way["service"] == "drive_through":
-      - weight *= 5
-    - elif way["service"] == "slipway":
-      - weight *= 7
-    - elif way["service"] == "layby":
-      - weight *= 1.75
-    - else:
-      - weight *= 2
-  - else:
-    - return None
-  - elif way["highway"] == "pedestrian":
-    - weight *= 0.8
-  - elif way["highway"] == "track":
-    - weight *= 1.5
-- additional_weight_road(way):
-  - factor = 1
-  - if way["lanes"] >= 2:
-    - factor *= 1.1
-  - if way["shoulder"] == "yes":
-    - factor *= 0.9
-  - if way["verge"] == "yes":
-    - factor *= 0.95
-  - return factor
-- weight_addition_for_steps(way):
-
-  - if step_count < 4:
-    - return 0.05
-  - if conveying is truthy:
-    - return 0
-  - weight = 0.3
-  - has_ramp = ramp == yes (and the ramp isn't a non-walkable ramp)
-  - has_handrail = handrail (or handrail on a specific side) == yes
-  - if has_ramp:
-    - weight -= 0.1
-  - if has_handrail:
-    - weight -= 0.05
-  - return weight
-
-- weight_path(way):
-  - if way["highway"] not in ["footway", "bridleway", "steps", "corridor", "path", "cycleway", "track", "pedestrian"]:
-    - return None
-  - maintained = 0
-  - if highway==steps: add weight_addition_for_steps(way) to weight
-  - if highway == one of "footway", "cycleway", "pedestrian":
-    - maintained = 1
-  - if operator is present:
-    - maintained = 1
-  - if informal == yes:
-    - maintained = -1
-- calculate_way_weight(way):
-  - base_weight_as_road = base_weight_road(way)
-  - if base_weight_as_road is not None:
-    - if way doesn't have pavement:
-      - additional_factors = additional_weight_roads(way)
-      - return base_weight_as_road * additional_factors
-    - if way does have pavement:
-      - pavement_weight = 1
-      - reduce weight if maxspeed < 20 mph
-      - increase weight if maxspeed > 50 mph
-      - return pavement_weight
-  - weight_as_path = weight_path(way)
-  - if weight_as_path is not None:
-    - return weight_as_path
-  - if way["highway"] == "road":
-    - raise a warning for invalid/incomplete data
-    - return 1
-  - return infinity
-- calculate_node_weight(node):
-  - access = node["foot"] || node["access"]
-  - if access == "no":
-    - return infinity
-  - if access == "private" && !options["private_access"]:
-    - return infinity
-  - if node["barrier"] == "gate" (or similar):
-    - if node["locked"] == "yes":
-      - return infinity
-  - return 0"""
+    def negative(self, key: str) -> bool:
+        return False  # TODO
 
 
 class RouteCalculator:
@@ -270,6 +162,244 @@ class RouteCalculator:
                 return None
         return weight
 
+    def additional_weight_road(self, way: dict) -> float:
+        factor = 1
+        if way.get("lanes"):
+            try:
+                lanes = int(way["lanes"])
+                if lanes >= 2:
+                    factor *= 2
+            except ValueError:
+                warn(f"Couldn't parse lanes={way['lanes']}")
+        if way.get("shoulder") and way.get("shoulder") != "no":
+            factor *= 0.9
+        if way.get("verge") and way.get("verge") != "no":
+            factor *= 0.95
+        return factor
+
+    def weight_path(self, way: dict) -> float | None:
+        path_highway_values = [
+            "footway",
+            "bridleway",
+            "steps",
+            "corridor",
+            "path",
+            "cycleway",
+            "track",
+            "pedestrian",
+        ]
+        if way.get("highway") not in path_highway_values:
+            return None
+        weight = 1
+        if way.get("highway") == "cycleway":
+            mixed_use: bool = (
+                way.get("segregated") in ["yes", "no"]
+                or way.get("foot") == "designated"
+            )
+            if not mixed_use:
+                # Mainly intended for cyclists
+                weight *= 1.5
+
+        # We will update this if we have decided to assume that a path is
+        # inaccessible to wheelchairs (-1) or suitable for wheelchairs (1)
+        wheelchair_suitable = 0
+        if way.get("highway") == "steps":
+            wheelchair_suitable = -1
+            # TODO
+            pass
+        # We might guess the value of trail_visibility=*
+        trail_visibility_default = None
+        # Our guess for if a path is "officially" maintained or not
+        maintained = 0
+        if way.get("highway") in ["footway", "cycleway", "pedestrian"]:
+            maintained = 1
+            wheelchair_suitable = 1
+        if way.get("designation"):
+            maintained = 1
+        if way.get("operator"):
+            maintained = 1
+        if way.get("informal") == "yes":
+            maintained = -1
+        if maintained == 1:
+            trail_visibility_default = "excellent"
+        if maintained == -1:
+            weight *= 1.05
+        # Parse sac_scale=*
+        sac_scale = way.get("sac_scale")
+        match sac_scale:
+            case "strolling":
+                weight *= 0.9
+                wheelchair_suitable = 1
+            case "hiking":
+                weight *= 1
+            case "mountain_hiking":
+                weight *= 2.5
+                wheelchair_suitable = -1
+            case "demanding_mountain_hiking":
+                wheelchair_suitable = -1
+                if self.options.positive("treacherous_paths"):
+                    # You maniac
+                    weight *= 0.99
+                elif self.options.negative("treacherous_paths"):
+                    weight *= 10
+                else:
+                    weight *= 3
+            case "alpine_hiking":
+                wheelchair_suitable = -1
+                if self.options.positive("treacherous_paths"):
+                    weight *= 20
+                elif self.options.negative("treacherous_paths"):
+                    weight *= 1000
+                else:
+                    weight *= 30
+            case "demanding_alpine_hiking" | "difficult_alpine_hiking":
+                wheelchair_suitable = -1
+                weight = inf
+            case None:
+                pass
+            case _:
+                warn(f"Ignoring unknown value sac_scale={sac_scale}")
+        # Parse trail_visibility=*
+        trail_visibility = way.get("trail_visibility", trail_visibility_default)
+        match trail_visibility:
+            case "excellent":
+                weight *= 0.9
+            case "good":
+                weight *= 1.02
+            case "intermediate" | "bad" | "horrible" | "no":
+                weight *= 1.05
+                # TODO: Warn the user that this section of the route has poor trail visibility
+            case None:
+                pass
+            case _:
+                warn(f"Ignoring unknown value trail_visibility={trail_visibility}")
+        # Parse trailblazed=*
+        trailblazed = way.get("trailblazed")
+        if trailblazed is not None and trailblazed != "no":
+            weight *= 0.91
+        # Parse width=*
+        width = way_width_meters(way)
+        if width is not None:
+            if width < 0.20:
+                # 20cm gap is probably impassable!
+                weight = inf
+            elif width > 5:
+                weight *= 0.9
+            elif width > 2:
+                weight *= 0.975
+        # Parse designation=*
+        designation = way.get("designation")
+        match designation:
+            case "public_footpath" | "public_bridleway" | "restricted_byway":
+                weight *= 0.9
+            case "byway_open_to_all_traffic":
+                weight *= 0.95
+            case "public_right_of_way":
+                weight *= 0.91
+            case "core_path":
+                # Scotland!
+                weight *= 0.9
+        segregated = way.get("segregated")
+        match segregated:
+            case "yes":
+                weight *= 0.98
+            case "no":
+                weight *= 1.02
+        obstacle = way.get("obstacle")
+        match obstacle:
+            case "vegetation":
+                weight *= 1.10
+        wheelchair = way.get("wheelchair", "yes" if wheelchair_suitable == 1 else "no")
+        if self.options.positive("wheelchair_accessible"):
+            match wheelchair:
+                case "yes":
+                    weight *= 0.9
+                case "no":
+                    weight *= 100
+                case "limited":
+                    weight *= 0.96
+                case "designated":
+                    weight *= 0.89
+        return weight
+
+    def additional_weight_ford(self, way: dict) -> float:
+        factor = 1
+        match way.get("ford"):
+            case "yes":
+                factor *= 3
+            case "stepping_stones":
+                factor *= 2.5
+        return factor
+
+    def additional_weight_general(self, way: dict) -> float:
+        factor = 1
+        surface = way.get("surface")
+        assumed_smoothness = None
+        if surface in ["asphalt", "chipseal"]:
+            assumed_smoothness = "good"
+        nicest_surfaces = [
+            "asphalt",
+            "chipseal",
+            "paving_stones:lanes",
+            "paving_stones",
+            "bricks",
+            "concrete:plates",
+            "concrete:lanes",
+            "concrete",
+        ]
+        paved_surfaces = [
+            "grass_paver",
+            "sett",
+            "unhewn_cobblestone",
+            "metal",
+            "metal_grid",
+            "wood",
+            "rubber",
+            "tiles",
+            "paved",
+            "cobblestone",
+            "cobblestone:flattened",
+        ]
+        unpaved_nice_surfaces = [
+            "compacted",
+            "fine_gravel",
+            "gravel",
+            "shells",
+            "rock",
+            "pebblestone",
+            "woodchips",
+        ]
+        bare_ground_surfaces = ["dirt", "grass", "sand", "snow", "earth"]
+        muddy_surfaces = ["mud"]
+        if surface in nicest_surfaces:
+            factor *= 0.95
+        elif surface in paved_surfaces:
+            factor *= 1.1 if self.options.positive("wheelchair_accessible") else 0.95
+        elif surface in unpaved_nice_surfaces:
+            factor *= 0.99
+        elif surface in bare_ground_surfaces:
+            factor *= 1.05
+        elif surface in muddy_surfaces:
+            factor *= 4
+        match way.get("smoothness", assumed_smoothness):
+            case "excellent" | "good" | "intermediate":
+                factor *= 0.95
+            case "very_bad" | "horrible" | "very_horrible":
+                factor *= 1.9
+            case "impassable":
+                is_okay = way.get("sac_scale") in ["strolling", "hiking"]
+                factor *= 2 if is_okay else 5
+        gradient = way_incline_gradient(way)
+        if gradient is not None:
+            if gradient != 0:
+                factor *= 1.1
+            if isinstance(gradient, int) and abs(gradient) > 0.025:
+                # 2.5% as the maximum suitable incline for wheelchair users
+                if self.options.positive("wheelchair_accessible"):
+                    factor *= 3
+        factor *= self.additional_weight_ford(way)
+        return factor
+
     def calculate_way_weight(self, way: dict) -> float:
         # Handle access tags
         access = way.get("foot") or way.get("access")
@@ -282,6 +412,7 @@ class RouteCalculator:
         base_weight_as_road = self.base_weight_road(way)
         if base_weight_as_road is not None:
             has_sidewalk = way_has_sidewalk(way)
+            sidewalk_guessed = False
             if has_sidewalk is None:
                 # Sidewalk tags not present, so guess based off of road type
                 has_sidewalk = way.get("highway") in [
@@ -292,17 +423,46 @@ class RouteCalculator:
                     "residential",
                     "unclassified",
                 ]
+                sidewalk_guessed = True
             if has_sidewalk == "no":
                 # We're walking on the road carriageway
-                additional_factors = 1  # TODO
-                return base_weight_as_road * additional_factors
-            pavement_weight = 1  # TODO: use weight_path()
+                additional_factors = self.additional_weight_road(way)
+                return (
+                    base_weight_as_road
+                    * additional_factors
+                    * self.additional_weight_general(way)
+                )
+            pavement_weight = (
+                self.weight_path(
+                    {
+                        "highway": "footway",
+                        "footway": "sidewalk",
+                        "surface": "asphalt",
+                    }
+                )
+                if not sidewalk_guessed
+                # Deprioritize ways where we're just assuming a sidewalk is present
+                else 1.2
+            )
+            if pavement_weight is None:
+                warn("Failed to calculate pavement weight (this is a bug)")
+                pavement_weight = 1
             # Improve or worsen the weight for walking along a pavement according to the road's maxspeed
             maxspeed_value = way_maxspeed_mph(way)
             if maxspeed_value and maxspeed_value >= 60:
                 pavement_weight *= 1.1
             return pavement_weight
-        return 1  # TODO use weight_path()
+
+        # If it's not a road, try parsing as a path
+        weight_as_path = self.weight_path(way)
+        if weight_as_path is not None:
+            return weight_as_path * self.additional_weight_general(way)
+        if way.get("highway") == "road":
+            warn("Encountered highway=road way")
+            return 1
+
+        # If it doesn't match any of the above, consider it unroutable
+        return inf
 
     def calculate_node_weight(self, node_id: int) -> float:
         node = self.graph.node(node_id).get("tags")
