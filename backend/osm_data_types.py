@@ -1,3 +1,4 @@
+from math import radians, tan
 from typing import Literal, TypedDict
 import warnings
 
@@ -161,4 +162,33 @@ def way_width_meters(way: dict[str, str]) -> float | None:
                 return None
         case _:
             warnings.warn(f"Invalid tag format: width={value}")
+            return None
+
+
+def way_incline_gradient(
+    way: dict[str, str]
+) -> float | Literal["up"] | Literal["down"] | None:
+    """Parses the incline=* tag, converting it to a gradient (0 to 1) or returning `"up"`/`"down"`"""
+    value = way.get("incline")
+    if not value:
+        return None
+    normalised_value = value.strip().lower()
+    unit_char = normalised_value[-1]
+    number = normalised_value[:-1].strip()
+    match unit_char:
+        case "%":
+            try:
+                return float(number) / 100
+            except ValueError as e:
+                warnings.warn(f"Invalid incline: {e}")
+                return None
+        case "°" | "º" | "deg" | "degrees":
+            try:
+                angle = radians(float(number))
+                return tan(angle)
+            except ValueError as e:
+                warnings.warn(f"Invalid incline: {e}")
+                return None
+        case _:
+            warnings.warn(f"Invalid tag format: incline={value}")
             return None

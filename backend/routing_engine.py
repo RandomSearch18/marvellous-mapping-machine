@@ -10,6 +10,7 @@ from osm_data_types import (
     OSMWay,
     OSMWayData,
     way_has_sidewalk,
+    way_incline_gradient,
     way_maxspeed_mph,
     way_width_meters,
 )
@@ -289,7 +290,7 @@ class RouteCalculator:
                 if lanes >= 2:
                     factor *= 2
             except ValueError:
-                warn(f"Invalid value for lanes={way['lanes']}")
+                warn(f"Couldn't parse lanes={way['lanes']}")
         if way.get("shoulder") and way.get("shoulder") != "no":
             factor *= 0.9
         if way.get("verge") and way.get("verge") != "no":
@@ -441,6 +442,111 @@ class RouteCalculator:
                     weight *= 0.89
         return weight
 
+    def additional_weight_ford(self, way: dict) -> float:
+        factor = 1
+        match way.get("ford"):
+            case "yes":
+                factor *= 3
+            case "stepping_stones":
+                factor *= 2.5
+        return factor
+
+    def additional_weight_general(self, way: dict) -> float:
+        """
+                - `ford=yes` should increase weight very significantly, as it is difficult for pedestrians to cross a ford
+          - If it's a `ford=stepping_stones`, then that's much better for pedestrians, although they still need care to cross, and there is a possible risk of injury, so it should still increase weight by a similar amount to a `sac_scale=mountain_hiking` path
+            - Any path with `surface=stepping_stones` should be treated this way too
+            - We should assume `wheelchair=no` for stepping stones
+          - `ford=yes` can be present on a way or on a node on a way, and we should parse both
+        - If `incline=*` is a non-zero value (including `up` or `down` or `yes`), we should add a slight penalty
+          - It has been suggested that the maximum incline that is suitable for wheelchair users is 2.5%[^wheelchair-incline]
+          - Parsing numerical values of this tag will require me to convert degrees to percentages, where that is the unit used
+          - For non-wheelchair users, I won't scale the penalty based on steepness of the incline, as this is difficult to get an intuition for so it would be hard to make a good formula for it
+        - `smoothness=*` is an important tag that, where present, describes how smooth the surface is
+          - It'll be easier and nicer to walk along a smooth path
+          - Very rough paths might pose a trip hazard, which could be dangerous if unprepared
+          - `smoothness=intermediate` and above are all pretty good for walking along, so they should be preferred
+          - `smoothness=intermediate` and above should also bee good for wheelchair users
+          - `smoothness=very_bad` to `smoothness=very_horrible` paths are likely walkable but will be less pleasant to walk along
+          - `smoothness=impassable` refers to being impassable for wheeled vehicles, but might be traversable on foot. We should avoid unless `sac_scale=*` is present and indicates that it is a walkable path
+        - `surface=*` is a very important tag for deciding how desirable a path will be
+          - Tarmac surfaces are usually nice and smooth, so we'll assume `smoothness=good` for `asphalt` and `chipseal`
+          - Similarly smooth paved surfaces: `paving_stones:lanes`, `paving_stones`, `bricks`, `concrete:plates`, `concrete:lanes`, `concrete`
+          - Other paved surfaces are still nice to walk on but may not be as smooth: `grass_paver`, `sett`, `unhewn_cobblestone`, `metal`, `metal_grid`, `wood`, `rubber`, `tiles`
+            - I will also include the generic value `paved`, the ambiguous value `cobblestone`, and the deprecated value `cobblestone:flattened` in this category, as the distinctions for these values doesn't matter in this case
+          - The following surfaces are unpaved but nice to walk on: `compacted`, `fine_gravel`, `gravel`, `shells`, `rock`, `pebblestone`, `woodchips`
+          - And the following surfaces are unpaved and bare ground, so not quite as nice to walk on: `dirt`, `grass`, `sand`, `snow`
+            - I will also include `earth` as an alias for `dirt`, as well as considering the generic `unpaved` value to be among these values
+          - `mud` isn't fun to walk on, so I should add a particularly high penalty for it
+        """
+        factor = 1
+        surface = way.get("surface")
+        assumed_smoothness = None
+        if surface in ["asphalt", "chipseal"]:
+            assumed_smoothness = "good"
+        nicest_surfaces = [
+            "asphalt",
+            "chipseal",
+            "paving_stones:lanes",
+            "paving_stones",
+            "bricks",
+            "concrete:plates",
+            "concrete:lanes",
+            "concrete",
+        ]
+        paved_surfaces = [
+            "grass_paver",
+            "sett",
+            "unhewn_cobblestone",
+            "metal",
+            "metal_grid",
+            "wood",
+            "rubber",
+            "tiles",
+            "paved",
+            "cobblestone",
+            "cobblestone:flattened",
+        ]
+        unpaved_nice_surfaces = [
+            "compacted",
+            "fine_gravel",
+            "gravel",
+            "shells",
+            "rock",
+            "pebblestone",
+            "woodchips",
+        ]
+        bare_ground_surfaces = ["dirt", "grass", "sand", "snow", "earth"]
+        muddy_surfaces = ["mud"]
+        if surface in nicest_surfaces:
+            factor *= 0.95
+        elif surface in paved_surfaces:
+            factor *= 1.1 if self.options.positive("wheelchair_accessible") else 0.95
+        elif surface in unpaved_nice_surfaces:
+            factor *= 0.99
+        elif surface in bare_ground_surfaces:
+            factor *= 1.05
+        elif surface in muddy_surfaces:
+            factor *= 4
+        match way.get("smoothness", assumed_smoothness):
+            case "excellent" | "good" | "intermediate":
+                factor *= 0.95
+            case "very_bad" | "horrible" | "very_horrible":
+                factor *= 1.9
+            case "impassable":
+                is_okay = way.get("sac_scale") in ["strolling", "hiking"]
+                factor *= 2 if is_okay else 5
+        gradient = way_incline_gradient(way)
+        if gradient is not None:
+            if gradient != 0:
+                factor *= 1.1
+            if isinstance(gradient, int) and abs(gradient) > 0.025:
+                # 2.5% as the maximum suitable incline for wheelchair users
+                if self.options.positive("wheelchair_accessible"):
+                    factor *= 3
+        factor *= self.additional_weight_ford(way)
+        return factor
+
     def calculate_way_weight(self, way: dict) -> float:
         # Handle access tags
         access = way.get("foot") or way.get("access")
@@ -468,7 +574,11 @@ class RouteCalculator:
             if has_sidewalk == "no":
                 # We're walking on the road carriageway
                 additional_factors = self.additional_weight_road(way)
-                return base_weight_as_road * additional_factors
+                return (
+                    base_weight_as_road
+                    * additional_factors
+                    * self.additional_weight_general(way)
+                )
             pavement_weight = (
                 self.weight_path(
                     {
@@ -493,7 +603,7 @@ class RouteCalculator:
         # If it's not a road, try parsing as a path
         weight_as_path = self.weight_path(way)
         if weight_as_path is not None:
-            return weight_as_path
+            return weight_as_path * self.additional_weight_general(way)
         if way.get("highway") == "road":
             warn("Encountered highway=road way")
             return 1
