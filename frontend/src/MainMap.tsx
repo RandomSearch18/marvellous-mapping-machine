@@ -1,7 +1,8 @@
 import type { CircleOptions, Layer, Map, PolylineOptions, Popup } from "leaflet"
-import { $, useEffect } from "voby"
+import { $, $$, useEffect, useMemo } from "voby"
 import { currentRoute, SegmentDebugWeight } from "./currentRoute.mts"
 import { Coordinates, Line } from "./types.mts"
+import { options } from "./options/optionsStorage"
 
 export const leaflet = $<typeof import("leaflet")>()
 export const mainMap = $<Map>()
@@ -29,7 +30,7 @@ function MainMap() {
   return <div id="main-map"></div>
 }
 
-let layersForCurrentRoute: Layer[] = []
+let layersForCurrentRoute: (Layer | null)[] = []
 
 const waypointCircleOptions: CircleOptions = {
   radius: 4,
@@ -50,17 +51,21 @@ useEffect(() => {
   const route = currentRoute()
   if (!L || !map || !route) return
   layersForCurrentRoute.forEach((layer) => {
-    layer.remove()
+    layer?.remove()
   })
   layersForCurrentRoute = [
-    // drawBbox(route.expandedBbox, {
-    //   color: "green",
-    //   fillOpacity: 0.1,
-    //   fill: false,
-    // }),
-    // drawBbox(route.unexpandedBbox, { color: "red" }),
+    // Debug overlay for the extent of the downloaded data
+    options.app.bboxOverlay
+      ? drawBbox(route.expandedBbox, {
+          color: "green",
+          fillOpacity: 0.1,
+          fill: false,
+        })
+      : null,
     // Draw debugging lines showing weights
-    drawWeightLines(route.debug.segmentWeights),
+    options.app.weightOverlay
+      ? drawWeightLines(route.debug.segmentWeights)
+      : null,
     // Mark start and end points with circles
     drawCircle(
       route.start,
