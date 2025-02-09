@@ -281,6 +281,21 @@ class RouteCalculator:
                 return None
         return weight
 
+    def additional_weight_road(self, way: dict) -> float:
+        factor = 1
+        if way.get("lanes"):
+            try:
+                lanes = int(way["lanes"])
+                if lanes >= 2:
+                    factor *= 2
+            except ValueError:
+                warn(f"Invalid value for lanes={way['lanes']}")
+        if way.get("shoulder") and way.get("shoulder") != "no":
+            factor *= 0.9
+        if way.get("verge") and way.get("verge") != "no":
+            factor *= 0.95
+        return factor
+
     def weight_path(self, way: dict) -> float | None:
         path_highway_values = [
             "footway",
@@ -452,7 +467,7 @@ class RouteCalculator:
                 sidewalk_guessed = True
             if has_sidewalk == "no":
                 # We're walking on the road carriageway
-                additional_factors = 1  # TODO
+                additional_factors = self.additional_weight_road(way)
                 return base_weight_as_road * additional_factors
             pavement_weight = (
                 self.weight_path(
