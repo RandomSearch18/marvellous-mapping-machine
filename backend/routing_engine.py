@@ -295,6 +295,15 @@ class RouteCalculator:
         if way.get("highway") not in path_highway_values:
             return None
         weight = 1
+        if way.get("highway") == "cycleway":
+            mixed_use: bool = (
+                way.get("segregated") in ["yes", "no"]
+                or way.get("foot") == "designated"
+            )
+            if not mixed_use:
+                # Mainly intended for cyclists
+                weight *= 0.85
+
         # We will update this if we have decided to assume that a path is
         # inaccessible to wheelchairs (-1) or suitable for wheelchairs (1)
         wheelchair_suitable = 0
