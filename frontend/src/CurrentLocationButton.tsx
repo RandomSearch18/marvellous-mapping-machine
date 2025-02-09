@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "voby"
 let locationMarker: Circle | null = null
 let locationCircle: Circle | null = null
 
+/** Remove location markers currently on the map */
 function cleanupMarkers() {
   if (locationMarker) locationMarker.remove()
   if (locationCircle) locationCircle.remove()
@@ -18,11 +19,13 @@ useEffect(() => {
   map.on("locationfound", (event) => {
     cleanupMarkers()
     const radius = event.accuracy / 2
+    // Draw a large circle to show GPS accuracy
     locationMarker = L.circle(event.latlng, {
       radius: Math.min(5, radius),
       fillOpacity: 0.8,
       opacity: 0.8,
     }).addTo(map)
+    // Draw the dot at the center of the circle
     locationCircle = L.circle(event.latlng, {
       radius,
     }).addTo(map)
