@@ -302,7 +302,7 @@ class RouteCalculator:
             )
             if not mixed_use:
                 # Mainly intended for cyclists
-                weight *= 0.85
+                weight *= 1.5
 
         # We will update this if we have decided to assume that a path is
         # inaccessible to wheelchairs (-1) or suitable for wheelchairs (1)
