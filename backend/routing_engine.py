@@ -1,4 +1,5 @@
 from math import inf
+from typing import Literal
 from warnings import warn
 import networkx
 import requests
@@ -71,7 +72,16 @@ class RoutingGraph:
         return self._graph.nodes[node_id]["pos"]
 
 
+type RoutingOptionValue = Literal[-1] | Literal[0] | Literal[1]
+
+
 class RoutingOptions:
+    def __init__(self, options: dict):
+        for key, value in options.items():
+            if value not in [-1, 0, 1]:
+                raise ValueError(f"Invalid option value: {key}={value}")
+        self.options: dict[str, RoutingOptionValue] = options
+
     def truthy(self, key: str) -> bool:
         return False  # TODO
 
