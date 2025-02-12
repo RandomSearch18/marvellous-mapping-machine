@@ -161,9 +161,9 @@ class RouteCalculator:
             case "secondary" | "secondary_link":
                 weight *= 15
             case "tertiary" | "tertiary_link":
-                weight *= 5 if self.options.true("higher_traffic_roads") else 10
+                weight *= 5 if self.options.true("allow_higher_traffic_roads") else 10
             case "unclassified":
-                weight *= 4 if self.options.true("higher_traffic_roads") else 6
+                weight *= 4 if self.options.true("allow_higher_traffic_roads") else 6
             case "residential":
                 weight *= 3
             case "living_street":
@@ -336,7 +336,7 @@ class RouteCalculator:
             case "vegetation":
                 weight *= 1.10
         wheelchair = way.get("wheelchair", "yes" if wheelchair_suitable == 1 else "no")
-        if self.options.positive("wheelchair_accessible"):
+        if self.options.true("wheelchair_accessible"):
             match wheelchair:
                 case "yes":
                     weight *= 0.9
@@ -400,7 +400,7 @@ class RouteCalculator:
         if surface in nicest_surfaces:
             factor *= 0.95
         elif surface in paved_surfaces:
-            factor *= 1.1 if self.options.positive("wheelchair_accessible") else 0.95
+            factor *= 1.1 if self.options.true("wheelchair_accessible") else 0.95
         elif surface in unpaved_nice_surfaces:
             factor *= 0.99
         elif surface in bare_ground_surfaces:
@@ -421,7 +421,7 @@ class RouteCalculator:
                 factor *= 1.1
             if isinstance(gradient, int) and abs(gradient) > 0.025:
                 # 2.5% as the maximum suitable incline for wheelchair users
-                if self.options.positive("wheelchair_accessible"):
+                if self.options.true("wheelchair_accessible"):
                     factor *= 3
         factor *= self.additional_weight_ford(way)
         return factor
@@ -431,7 +431,7 @@ class RouteCalculator:
         access = way.get("foot") or way.get("access")
         if access == "no":
             return inf
-        if access == "private" and not self.options.true("private_access"):
+        if access == "private" and not self.options.true("allow_private_access"):
             return inf
 
         # First, try parsing the way data as a road
@@ -498,7 +498,7 @@ class RouteCalculator:
         access = node.get("foot") or node.get("access")
         if access == "no":
             return inf
-        if access == "private" and not self.options.true("private_access"):
+        if access == "private" and not self.options.true("allow_private_access"):
             return inf
         # Most barriers only block motor traffic, so we only consider those that generally block pedestrians.
         # We assume (by default) that these barriers will be able to be opened by a pedestrian,

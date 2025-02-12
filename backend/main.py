@@ -87,7 +87,31 @@ if __name__ == "__main__":
         )
         print("Computing routing graph")
         routing_graph = routing_engine.compute_graph(ways, raw_nodes)
-        calculator = RouteCalculator(routing_graph, RoutingOptions())
+        calculator = RouteCalculator(
+            routing_graph,
+            RoutingOptions(
+                {
+                    "unpaved_paths": 0,
+                    "paved_paths": 0,
+                    "covered_paths": 1,
+                    "indoor_paths": 0,
+                    "steps": 0,
+                    "prefer_marked_crossings": False,
+                    "prefer_traffic_light_crossings": False,
+                    "prefer_dipped_kerbs": False,
+                    "prefer_tactile_paving": False,
+                    "allow_private_access": False,
+                    "allow_customer_access": True,
+                    "allow_walking_on_roads": True,
+                    "allow_higher_traffic_roads": True,
+                    "rights_of_way": 1,
+                    "maintained_paths": 1,
+                    "desire_paths": 0,
+                    "treacherous_paths": -1,
+                    "wheelchair_accessible": False,
+                }
+            ),
+        )
         print("Calculating route")
         # start = 51.273330, -0.397460
         start = +51.27347, -0.397916
