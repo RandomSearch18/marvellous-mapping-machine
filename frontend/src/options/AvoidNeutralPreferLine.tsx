@@ -1,5 +1,4 @@
 import { $, useMemo } from "voby"
-import CheckboxLine from "./CheckboxLine"
 import { options } from "./optionsStorage"
 import { RoutingOptionsOptions } from "../pyscript.mts"
 import OptionLine from "./OptionLine"
@@ -15,7 +14,6 @@ function AvoidNeutralPreferLine({
   const selectedInputClasses = ["btn-inset"]
   const state = useMemo(() => {
     const routingOptions = options.routing
-    if (!routingOptions) return
     return routingOptions[key]
   })
   const input = (
