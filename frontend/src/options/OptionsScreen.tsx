@@ -43,7 +43,7 @@ function OptionsScreen() {
         <AvoidNeutralPreferLine label="Paved paths" key="paved_paths" />
         <AvoidNeutralPreferLine label="Covered paths" key="covered_paths" />
         <AvoidNeutralPreferLine label="Indoor paths" key="indoor_paths" />
-        <AvoidNeutralPreferLine label="Lit paths" key="lit_paths" />
+        <AvoidNeutralPreferLine label="💡 Lit paths" key="lit_paths" />
         <AvoidNeutralPreferLine label="Pavements" key="pavements" />
         <AvoidNeutralPreferLine label="Steps/staircases" key="steps" />
       </div>
