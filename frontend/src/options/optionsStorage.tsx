@@ -8,7 +8,7 @@ export type Options = {
     bboxOverlay: boolean
   }
   /** Options to be passed to the Python routing engine */
-  router: RoutingOptionsOptions
+  routing: RoutingOptionsOptions
 }
 
 const defaultOptions: Options = {
@@ -16,7 +16,7 @@ const defaultOptions: Options = {
     weightOverlay: false,
     bboxOverlay: false,
   },
-  router: {
+  routing: {
     unpaved_paths: TriStateOption.Neutral,
     paved_paths: TriStateOption.Neutral,
     covered_paths: TriStateOption.Prefer,

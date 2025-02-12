@@ -218,7 +218,7 @@ async function calculateRoute() {
   const routing_graph = routing_engine.compute_graph(ways, raw_nodes)
   const calculator = py.RouteCalculator(
     routing_graph,
-    py.RoutingOptions(options.router)
+    py.RoutingOptions(options.routing)
   )
   routeCalculationProgress(CalculationState.CalculatingRoute)
   await tickUI()
