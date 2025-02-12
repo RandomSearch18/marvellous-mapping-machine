@@ -72,27 +72,43 @@ class RoutingGraph:
         return self._graph.nodes[node_id]["pos"]
 
 
-type RoutingOptionValue = Literal[-1] | Literal[0] | Literal[1]
+type AvoidPreferNeutral = Literal[-1] | Literal[0] | Literal[1]
+type RoutingOptionValue = AvoidPreferNeutral | bool
 
 
 class RoutingOptions:
     def __init__(self, options: dict):
         for key, value in options.items():
-            if value not in [-1, 0, 1]:
+            valid_value = value in [-1, 0, 1] or isinstance(value, bool)
+            if not valid_value:
                 raise ValueError(f"Invalid option value: {key}={value}")
         self.options: dict[str, RoutingOptionValue] = options
 
-    def truthy(self, key: str) -> bool:
-        return False  # TODO
+    def get_tri_state(self, key: str) -> AvoidPreferNeutral:
+        value = self.options[key]
+        if isinstance(value, bool):
+            raise ValueError(
+                f"Option {key} is not a tri-state (avoid/prefer/neutral) value"
+            )
+        return value
+
+    def get_bool(self, key: str) -> bool:
+        value = self.options[key]
+        if not isinstance(value, bool):
+            raise ValueError(f"Option {key} is not a boolean value")
+        return value
+
+    def true(self, key: str) -> bool:
+        return self.get_bool(key)
 
     def neutral(self, key: str) -> bool:
-        return True  # TODO
+        return self.get_tri_state(key) == 0
 
     def positive(self, key: str) -> bool:
-        return False  # TODO
+        return self.options[key] == 1
 
     def negative(self, key: str) -> bool:
-        return False  # TODO
+        return self.options[key] == -1
 
 
 class RouteCalculator:
@@ -145,9 +161,9 @@ class RouteCalculator:
             case "secondary" | "secondary_link":
                 weight *= 15
             case "tertiary" | "tertiary_link":
-                weight *= 5 if self.options.truthy("higher_traffic_roads") else 10
+                weight *= 5 if self.options.true("higher_traffic_roads") else 10
             case "unclassified":
-                weight *= 4 if self.options.truthy("higher_traffic_roads") else 6
+                weight *= 4 if self.options.true("higher_traffic_roads") else 6
             case "residential":
                 weight *= 3
             case "living_street":
@@ -415,7 +431,7 @@ class RouteCalculator:
         access = way.get("foot") or way.get("access")
         if access == "no":
             return inf
-        if access == "private" and not self.options.truthy("private_access"):
+        if access == "private" and not self.options.true("private_access"):
             return inf
 
         # First, try parsing the way data as a road
@@ -482,7 +498,7 @@ class RouteCalculator:
         access = node.get("foot") or node.get("access")
         if access == "no":
             return inf
-        if access == "private" and not self.options.truthy("private_access"):
+        if access == "private" and not self.options.true("private_access"):
             return inf
         # Most barriers only block motor traffic, so we only consider those that generally block pedestrians.
         # We assume (by default) that these barriers will be able to be opened by a pedestrian,
