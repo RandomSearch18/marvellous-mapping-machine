@@ -78,6 +78,10 @@ type RoutingOptionValue = AvoidPreferNeutral | bool
 
 class RoutingOptions:
     def __init__(self, options: dict):
+        # Ensure the options is a proper Python dict
+        # (because JS code may call this function)
+        if type(options).__name__ == "JsProxy":
+            options = options.to_py()  # type: ignore
         for key, value in options.items():
             valid_value = value in [-1, 0, 1] or isinstance(value, bool)
             if not valid_value:
