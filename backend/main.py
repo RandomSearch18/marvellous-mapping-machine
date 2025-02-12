@@ -95,6 +95,8 @@ if __name__ == "__main__":
                     "paved_paths": 0,
                     "covered_paths": 1,
                     "indoor_paths": 0,
+                    "pavements": 0,
+                    "lit_paths": 0,
                     "steps": 0,
                     "prefer_marked_crossings": False,
                     "prefer_traffic_light_crossings": False,

@@ -21,6 +21,8 @@ const defaultOptions: Options = {
     paved_paths: TriStateOption.Neutral,
     covered_paths: TriStateOption.Prefer,
     indoor_paths: TriStateOption.Neutral,
+    lit_paths: TriStateOption.Neutral,
+    pavements: TriStateOption.Neutral,
     steps: TriStateOption.Neutral,
     prefer_marked_crossings: false,
     prefer_traffic_light_crossings: false,

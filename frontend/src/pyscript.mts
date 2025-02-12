@@ -11,6 +11,8 @@ export type RoutingOptionsOptions = {
   paved_paths: TriStateOption
   covered_paths: TriStateOption
   indoor_paths: TriStateOption
+  lit_paths: TriStateOption
+  pavements: TriStateOption
   steps: TriStateOption
   prefer_marked_crossings: boolean
   prefer_traffic_light_crossings: boolean
