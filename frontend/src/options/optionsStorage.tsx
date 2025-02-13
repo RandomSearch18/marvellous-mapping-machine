@@ -41,10 +41,22 @@ const defaultOptions: Options = {
 }
 
 function getInitialOptions(): Options {
-  const stored = localStorage.getItem("options")
-  if (!stored) return defaultOptions
+  const rawData = localStorage.getItem("options")
+  const stored: {
+    app?: Partial<Options["app"]>
+    routing?: Partial<Options["routing"]>
+  } = rawData ? JSON.parse(rawData) : null
   try {
-    return JSON.parse(stored)
+    return {
+      app: {
+        ...defaultOptions.app,
+        ...stored?.app,
+      },
+      routing: {
+        ...defaultOptions.routing,
+        ...stored?.routing,
+      },
+    }
   } catch (error) {
     console.error("Failed to parse options from local storage:", error)
     return defaultOptions
