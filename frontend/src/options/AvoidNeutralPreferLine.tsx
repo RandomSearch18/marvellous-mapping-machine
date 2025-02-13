@@ -1,5 +1,5 @@
 import { useMemo } from "voby"
-import { options, setRoutingOption } from "./optionsStorage"
+import { options, setRoutingOption } from "./optionsStorage.mts"
 import { RoutingOptionsOptions } from "../pyscript.mts"
 import OptionLine from "./OptionLine"
 

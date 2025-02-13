@@ -4,7 +4,7 @@ import { currentRoute } from "./currentRoute.mts"
 import { BboxTuple, Coordinates, Line, NominatimPlace } from "./types.mts"
 import { ValidationError } from "./validationError.mts"
 import { throttle, CANCELLED } from "./throttle.mts"
-import { options } from "./options/optionsStorage"
+import { options } from "./options/optionsStorage.mts"
 
 enum CalculationState {
   Idle,

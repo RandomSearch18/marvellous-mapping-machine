@@ -1,7 +1,7 @@
 import AvoidNeutralPreferLine from "./AvoidNeutralPreferLine"
 import CheckboxLine from "./CheckboxLine"
 import OptionsSection from "./OptionsSection"
-import { options } from "./optionsStorage"
+import { options } from "./optionsStorage.mts"
 
 function OptionsScreen() {
   return (
