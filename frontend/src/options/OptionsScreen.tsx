@@ -1,5 +1,6 @@
 import AvoidNeutralPreferLine from "./AvoidNeutralPreferLine"
 import CheckboxLine from "./CheckboxLine"
+import OptionsSection from "./OptionsSection"
 import { options } from "./optionsStorage"
 
 function OptionsScreen() {
@@ -37,8 +38,7 @@ function OptionsScreen() {
           }
         />
       </div>
-      <div class="flex flex-col max-w-xl  mb-8">
-        <h3 class="font-bold text-2xl mb-4">Path types</h3>
+      <OptionsSection title="Path types">
         <AvoidNeutralPreferLine label="Unpaved paths" key="unpaved_paths" />
         <AvoidNeutralPreferLine label="Paved paths" key="paved_paths" />
         <AvoidNeutralPreferLine label="Covered paths" key="covered_paths" />
@@ -46,7 +46,7 @@ function OptionsScreen() {
         <AvoidNeutralPreferLine label="💡 Lit paths" key="lit_paths" />
         <AvoidNeutralPreferLine label="Pavements" key="pavements" />
         <AvoidNeutralPreferLine label="Steps/staircases" key="steps" />
-      </div>
+      </OptionsSection>
     </div>
   )
 }
