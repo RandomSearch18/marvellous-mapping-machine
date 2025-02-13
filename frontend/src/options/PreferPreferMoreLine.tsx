@@ -4,7 +4,7 @@ import { RoutingOptionsOptions } from "../pyscript.mts"
 import OptionLine from "./OptionLine"
 import CombiButtonButton from "./CombiButtonButton"
 
-function AvoidNeutralPreferLine({
+function PreferPreferMoreLine({
   label,
   key,
 }: {
@@ -18,29 +18,22 @@ function AvoidNeutralPreferLine({
   const input = (
     <div class="flex join rounded-full">
       <CombiButtonButton
-        active={() => state() === -1}
-        onClick={() => setRoutingOption(key, -1)}
-        classes="btn-error"
-      >
-        Avoid
-      </CombiButtonButton>
-      <CombiButtonButton
-        active={() => state() === 0}
-        onClick={() => setRoutingOption(key, 0)}
+        active={() => state() === false}
+        onClick={() => setRoutingOption(key, false)}
         classes="btn-neutral"
       >
-        Neutral
+        Prefer
       </CombiButtonButton>
       <CombiButtonButton
-        active={() => state() === 1}
-        onClick={() => setRoutingOption(key, 1)}
+        active={() => state() === true}
+        onClick={() => setRoutingOption(key, true)}
         classes="btn-success"
       >
-        Prefer
+        Prefer more
       </CombiButtonButton>
     </div>
   )
   return <OptionLine input={input} label={label} />
 }
 
-export default AvoidNeutralPreferLine
+export default PreferPreferMoreLine
