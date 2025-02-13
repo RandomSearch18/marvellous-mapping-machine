@@ -70,3 +70,20 @@ useEffect(() => {
   localStorage.setItem("options", serializedOptions)
   console.debug("Updated saved options:", serializedOptions)
 })
+
+export function setRoutingOption<T extends keyof RoutingOptionsOptions>(
+  key: T,
+  value: RoutingOptionsOptions[T]
+) {
+  if (!(key in options.routing)) {
+    throw new Error(`Option doesn't exist: ${key}`)
+  }
+  const existingType = typeof options.routing[key]
+  const ourType = typeof value
+  if (existingType !== ourType) {
+    throw new Error(
+      `Incompatible option types: can't assign ${ourType} to ${existingType}`
+    )
+  }
+  options.routing[key] = value
+}

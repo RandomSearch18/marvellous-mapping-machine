@@ -1,24 +1,7 @@
 import { useMemo } from "voby"
-import { options } from "./optionsStorage"
+import { options, setRoutingOption } from "./optionsStorage"
 import { RoutingOptionsOptions } from "../pyscript.mts"
 import OptionLine from "./OptionLine"
-
-function setOption<T extends keyof RoutingOptionsOptions>(
-  key: T,
-  value: RoutingOptionsOptions[T]
-) {
-  if (!(key in options.routing)) {
-    throw new Error(`Option doesn't exist: ${key}`)
-  }
-  const existingType = typeof options.routing[key]
-  const ourType = typeof value
-  if (existingType !== ourType) {
-    throw new Error(
-      `Incompatible option types: can't assign ${ourType} to ${existingType}`
-    )
-  }
-  options.routing[key] = value
-}
 
 function AvoidNeutralPreferLine({
   label,
@@ -41,7 +24,7 @@ function AvoidNeutralPreferLine({
           state() === -1 ? selectedInputClasses : null,
           "btn-error",
         ]}
-        onClick={() => setOption(key, -1)}
+        onClick={() => setRoutingOption(key, -1)}
       >
         Avoid
       </button>
@@ -51,7 +34,7 @@ function AvoidNeutralPreferLine({
           state() === 0 ? selectedInputClasses : null,
           "btn-neutral",
         ]}
-        onClick={() => setOption(key, 0)}
+        onClick={() => setRoutingOption(key, 0)}
       >
         Neutral
       </button>
@@ -61,7 +44,7 @@ function AvoidNeutralPreferLine({
           state() === 1 ? selectedInputClasses : null,
           "btn-success",
         ]}
-        onClick={() => setOption(key, 1)}
+        onClick={() => setRoutingOption(key, 1)}
       >
         Prefer
       </button>
