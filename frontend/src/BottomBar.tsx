@@ -47,7 +47,7 @@ function BottomBar() {
   })
 
   return (
-    <div class="btm-nav" id="bottom-bar" onClick={onClick}>
+    <div class="btm-nav static flex-none" id="bottom-bar" onClick={onClick}>
       <For values={Object.entries(bottomBarButtons)}>
         {([name, active]) => <BottomBarButton active={active} name={name} />}
       </For>
