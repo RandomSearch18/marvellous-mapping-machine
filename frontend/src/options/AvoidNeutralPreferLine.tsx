@@ -2,6 +2,7 @@ import { useMemo } from "voby"
 import { options, setRoutingOption } from "./optionsStorage.mts"
 import { RoutingOptionsOptions } from "../pyscript.mts"
 import OptionLine from "./OptionLine"
+import CombiButtonButton from "./CombiButtonButton"
 
 function AvoidNeutralPreferLine({
   label,
@@ -10,44 +11,35 @@ function AvoidNeutralPreferLine({
   label: JSX.Child
   key: keyof RoutingOptionsOptions
 }) {
-  const inputClasses = ["btn", "btn-outline", "join-item"]
-  const selectedInputClasses = ["btn-inset"]
   const state = useMemo(() => {
     const routingOptions = options.routing
     return routingOptions[key]
   })
   const input = (
     <div class="flex join rounded-full">
-      <button
-        class={() => [
-          ...inputClasses,
-          state() === -1 ? selectedInputClasses : null,
-          "btn-error",
-        ]}
+      <CombiButtonButton
+        active={() => state() === -1}
         onClick={() => setRoutingOption(key, -1)}
+        classes="btn-error"
       >
         Avoid
-      </button>
-      <button
-        class={() => [
-          ...inputClasses,
-          state() === 0 ? selectedInputClasses : null,
-          "btn-neutral",
-        ]}
+      </CombiButtonButton>
+
+      <CombiButtonButton
+        active={() => state() === 0}
         onClick={() => setRoutingOption(key, 0)}
+        classes="btn-neutral"
       >
         Neutral
-      </button>
-      <button
-        class={() => [
-          ...inputClasses,
-          state() === 1 ? selectedInputClasses : null,
-          "btn-success",
-        ]}
+      </CombiButtonButton>
+
+      <CombiButtonButton
+        active={() => state() === 1}
         onClick={() => setRoutingOption(key, 1)}
+        classes="btn-success"
       >
         Prefer
-      </button>
+      </CombiButtonButton>
     </div>
   )
   return <OptionLine input={input} label={label} />
