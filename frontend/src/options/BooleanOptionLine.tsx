@@ -4,12 +4,23 @@ import { RoutingOptionsOptions } from "../pyscript.mts"
 import OptionLine from "./OptionLine"
 import CombiButtonButton from "./CombiButtonButton"
 
-function PreferPreferMoreLine({
+function BooleanOptionLine({
   label,
   key,
+  buttons,
 }: {
   label: JSX.Child
   key: keyof RoutingOptionsOptions
+  buttons: {
+    false: {
+      text: string
+      classes: JSX.Class
+    }
+    true: {
+      text: string
+      classes: JSX.Class
+    }
+  }
 }) {
   const state = useMemo(() => {
     const routingOptions = options.routing
@@ -20,20 +31,20 @@ function PreferPreferMoreLine({
       <CombiButtonButton
         active={() => state() === false}
         onClick={() => setRoutingOption(key, false)}
-        classes="btn-neutral"
+        classes={buttons.false.classes}
       >
-        Prefer
+        {buttons.false.text}
       </CombiButtonButton>
       <CombiButtonButton
         active={() => state() === true}
         onClick={() => setRoutingOption(key, true)}
-        classes="btn-success"
+        classes={buttons.true.classes}
       >
-        Prefer more
+        {buttons.true.text}
       </CombiButtonButton>
     </div>
   )
   return <OptionLine input={input} label={label} />
 }
 
-export default PreferPreferMoreLine
+export default BooleanOptionLine

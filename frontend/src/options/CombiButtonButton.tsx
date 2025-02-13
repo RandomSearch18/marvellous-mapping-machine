@@ -1,6 +1,6 @@
 import { $$, FunctionMaybe } from "voby"
 
-const buttonClasses = ["btn", "btn-outline", "join-item"]
+const buttonClasses = ["btn", "btn-outline", "join-item", "hover:btn-inset"]
 const selectedClasses = ["btn-inset"]
 
 function CombiButtonButton({
