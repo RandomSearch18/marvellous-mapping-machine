@@ -10,7 +10,7 @@ import {
 
 function OptionsScreen() {
   return (
-    <div class="mx-3">
+    <div class="mx-3 pb-8">
       <h2 class="font-bold text-4xl mt-5 mb-8">Navigation options</h2>
       <OptionsSection title="Path types">
         <AvoidNeutralPreferLine label="Unpaved paths" key="unpaved_paths" />
