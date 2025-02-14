@@ -182,6 +182,10 @@ def way_incline_gradient(
     if not value:
         return None
     normalised_value = value.strip().lower()
+    if normalised_value == "up":
+        return "up"
+    if normalised_value == "down":
+        return "down"
     unit_char = normalised_value[-1]
     number = normalised_value[:-1].strip()
     match unit_char:
