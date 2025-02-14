@@ -384,7 +384,6 @@ class RouteCalculator:
         if way.get("footway") == "sidewalk":
             weight *= 1 - self.options.get_tri_state("pavements") * 0.4
         # Add penalty for wheelchair users if the path is inaccessible
-        print(self.options.true("wheelchair_accessible"))
         wheelchair = way.get("wheelchair", "yes" if wheelchair_suitable == 1 else "no")
         if self.options.true("wheelchair_accessible"):
             match wheelchair:
