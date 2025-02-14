@@ -607,7 +607,7 @@ class RouteCalculator:
             weight *= 0.5
         if node.get("crossing:island") == "yes":
             weight *= 0.7
-        if self.options.true("audible_crossings"):
+        if self.options.true("prefer_audible_crossings"):
             if node.get("traffic_signals:sound") == "yes":
                 weight *= 0.6
             elif node.get("traffic_signals:sound") == "no":

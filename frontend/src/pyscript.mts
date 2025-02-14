@@ -16,6 +16,7 @@ export type RoutingOptionsOptions = {
   steps: TriStateOption
   prefer_marked_crossings: boolean
   prefer_traffic_light_crossings: boolean
+  prefer_audible_crossings: boolean
   prefer_dipped_kerbs: boolean
   prefer_tactile_paving: boolean
   allow_private_access: boolean

@@ -26,6 +26,7 @@ const defaultOptions: Options = {
     steps: TriStateOption.Neutral,
     prefer_marked_crossings: false,
     prefer_traffic_light_crossings: false,
+    prefer_audible_crossings: false, // TODO add to UI
     prefer_dipped_kerbs: false,
     prefer_tactile_paving: false,
     allow_private_access: false,
