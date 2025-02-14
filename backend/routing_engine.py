@@ -152,6 +152,27 @@ class RouteCalculator:
         if way.get("service") == "bus":
             way.setdefault("foot", "no")
 
+    def access_is_legal(self, tags: dict) -> bool:
+        """Checks if the provided node or way is legal to be walked on
+
+        - Uses access tags and the routing options to determine if access should be allowed
+        - Only considers pedestrian access
+        - Returns `True` if legal access is allowed, or `False` if access shouldn't be allowed
+        - Assumes `True` if access tags aren't present
+        """
+        access = tags.get("foot") or tags.get("access")
+        if access == "no":
+            return False
+        if access == "private" and not self.options.true("allow_private_access"):
+            return False
+        if access in ["customers", "permit"] and not self.options.true(
+            "allow_customer_access"
+        ):
+            return False
+        if access in ["agricultural", "forestry", "delivery", "military"]:
+            return False
+        return True
+
     def base_weight_road(self, way: dict) -> float | None:
         # In the future we might want consider additional factors in this method,
         # hence the logic where we start with a weight of 1 and multiply it.
@@ -467,10 +488,7 @@ class RouteCalculator:
 
     def calculate_way_weight(self, way: dict) -> float:
         # Handle access tags
-        access = way.get("foot") or way.get("access")
-        if access == "no":
-            return inf
-        if access == "private" and not self.options.true("allow_private_access"):
+        if not self.access_is_legal(way):
             return inf
 
         # First, try parsing the way data as a road
@@ -491,6 +509,9 @@ class RouteCalculator:
                 sidewalk_guessed = True
             if has_sidewalk == "no":
                 # We're walking on the road carriageway
+                if way.get("foot") == "use_sidepath":
+                    # Never route along a carriageway if it's forbidden to do so
+                    return inf
                 additional_factors = self.additional_weight_road(way)
                 return (
                     base_weight_as_road
@@ -595,10 +616,7 @@ class RouteCalculator:
         if not node:
             # Untagged node, so don't add any weight
             return 0
-        access = node.get("foot") or node.get("access")
-        if access == "no":
-            return inf
-        if access == "private" and not self.options.true("allow_private_access"):
+        if not self.access_is_legal(node):
             return inf
         # Most barriers only block motor traffic, so we only consider those that generally block pedestrians.
         # We assume (by default) that these barriers will be able to be opened by a pedestrian,
