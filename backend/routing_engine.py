@@ -367,7 +367,7 @@ class RouteCalculator:
             "core_path",
         ]
         if designation in public_rights_of_way:
-            weight *= 1 - self.options.get_tri_state("public_rights_of_way") * 0.3
+            weight *= 1 - self.options.get_tri_state("rights_of_way") * 0.3
         # Parse segregated=*
         segregated = way.get("segregated")
         match segregated:
