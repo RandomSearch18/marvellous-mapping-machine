@@ -47,6 +47,15 @@ class OSMWayData(TypedDict):
     length: float
 
 
+def truthy_tag(tags: dict[str, str], key: str) -> bool:
+    value = tags.get(key)
+    if not value:
+        return False
+    if value in ["no", "none"]:
+        return False
+    return True
+
+
 def way_has_sidewalk(
     way: dict[str, str]
 ) -> Literal["both"] | Literal["left"] | Literal["right"] | Literal["no"] | None:

@@ -10,6 +10,7 @@ from osm_data_types import (
     OSMNode,
     OSMWay,
     OSMWayData,
+    truthy_tag,
     way_has_sidewalk,
     way_incline_gradient,
     way_maxspeed_mph,
@@ -201,9 +202,9 @@ class RouteCalculator:
                     factor *= 2
             except ValueError:
                 warn(f"Couldn't parse lanes={way['lanes']}")
-        if way.get("shoulder") and way.get("shoulder") != "no":
+        if truthy_tag(way, "shoulder"):
             factor *= 0.9
-        if way.get("verge") and way.get("verge") != "no":
+        if truthy_tag(way, "verge"):
             factor *= 0.95
         return factor
 
@@ -329,16 +330,23 @@ class RouteCalculator:
             case "core_path":
                 # Scotland!
                 weight *= 0.9
+        # Parse segregated=*
         segregated = way.get("segregated")
         match segregated:
             case "yes":
                 weight *= 0.98
             case "no":
                 weight *= 1.02
+        # Handle obstacles along the path
         obstacle = way.get("obstacle")
         match obstacle:
             case "vegetation":
                 weight *= 1.10
+        # Handle any pavement preference
+        if way.get("footway") == "sidewalk":
+            weight *= 1 - self.options.get_tri_state("pavements") * 0.4
+        # Add penalty for wheelchair users if the path is inaccessible
+        print(self.options.true("wheelchair_accessible"))
         wheelchair = way.get("wheelchair", "yes" if wheelchair_suitable == 1 else "no")
         if self.options.true("wheelchair_accessible"):
             match wheelchair:
@@ -367,7 +375,7 @@ class RouteCalculator:
         assumed_smoothness = None
         if surface in ["asphalt", "chipseal"]:
             assumed_smoothness = "good"
-        nicest_surfaces = [
+        nice_paved_surfaces = [
             "asphalt",
             "chipseal",
             "paving_stones:lanes",
@@ -390,7 +398,7 @@ class RouteCalculator:
             "cobblestone",
             "cobblestone:flattened",
         ]
-        unpaved_nice_surfaces = [
+        nice_unpaved_surfaces = [
             "compacted",
             "fine_gravel",
             "gravel",
@@ -401,15 +409,20 @@ class RouteCalculator:
         ]
         bare_ground_surfaces = ["dirt", "grass", "sand", "snow", "earth"]
         muddy_surfaces = ["mud"]
-        if surface in nicest_surfaces:
+        if surface in nice_paved_surfaces:
+            factor *= 1 - self.options.get_tri_state("paved_paths") * 0.5
             factor *= 0.95
         elif surface in paved_surfaces:
+            factor *= 1 - self.options.get_tri_state("paved_paths") * 0.5
             factor *= 1.1 if self.options.true("wheelchair_accessible") else 0.95
-        elif surface in unpaved_nice_surfaces:
+        elif surface in nice_unpaved_surfaces:
+            factor *= 1 - self.options.get_tri_state("unpaved_paths") * 0.5
             factor *= 0.99
         elif surface in bare_ground_surfaces:
+            factor *= 1 - self.options.get_tri_state("unpaved_paths") * 0.5
             factor *= 1.05
         elif surface in muddy_surfaces:
+            factor *= 1 - self.options.get_tri_state("unpaved_paths") * 0.5
             factor *= 4
         match way.get("smoothness", assumed_smoothness):
             case "excellent" | "good" | "intermediate":
@@ -428,6 +441,28 @@ class RouteCalculator:
                 if self.options.true("wheelchair_accessible"):
                     factor *= 3
         factor *= self.additional_weight_ford(way)
+        match way.get("lit"):
+            case "yes" | "24/7" | "automatic" | "limited":
+                lit = True
+            case "no" | "disused":
+                lit = False
+            case _:
+                lit = None
+        if lit is True:
+            factor *= 1 - self.options.get_tri_state("lit_paths") * 0.3
+        indoors = (
+            way.get("indoor") in ["yes", "corridor"] or way.get("highway") == "corridor"
+        )
+        if indoors:
+            factor *= 1 - self.options.get_tri_state("indoor_paths") * 0.5
+        covered = (
+            truthy_tag(way, "covered")
+            or truthy_tag(way, "tunnel")
+            or truthy_tag(way, "shelter")
+            or indoors
+        )
+        if covered:
+            factor *= 1 - self.options.get_tri_state("covered_paths") * 0.4
         return factor
 
     def calculate_way_weight(self, way: dict) -> float:
