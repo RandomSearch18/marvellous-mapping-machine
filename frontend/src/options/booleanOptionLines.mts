@@ -24,6 +24,29 @@ export function PreferPreferMoreLine({
   })
 }
 
+export function NeutralPreferLine({
+  label,
+  key,
+}: {
+  label: JSX.Child
+  key: keyof RoutingOptionsOptions
+}) {
+  return BooleanOptionLine({
+    label,
+    key,
+    buttons: {
+      false: {
+        text: "Neutral",
+        classes: "btn-neutral",
+      },
+      true: {
+        text: "Prefer",
+        classes: "btn-success",
+      },
+    },
+  })
+}
+
 export function DisallowAllowLine({
   label,
   key,

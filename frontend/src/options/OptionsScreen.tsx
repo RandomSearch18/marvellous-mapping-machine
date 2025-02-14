@@ -4,6 +4,7 @@ import OptionsSection from "./OptionsSection"
 import { options } from "./optionsStorage.mts"
 import {
   DisallowAllowLine,
+  NeutralPreferLine,
   NeverReduceLine,
   PreferPreferMoreLine,
 } from "./booleanOptionLines.mts"
@@ -20,6 +21,12 @@ function OptionsScreen() {
         <AvoidNeutralPreferLine label="💡 Lit paths" key="lit_paths" />
         <AvoidNeutralPreferLine label="Pavements" key="pavements" />
         <AvoidNeutralPreferLine label="Steps/staircases" key="steps" />
+      </OptionsSection>
+      <OptionsSection title="Physical accessibility">
+        <NeutralPreferLine
+          label="Wheelchair-accessible routes"
+          key="wheelchair_accessible"
+        />
       </OptionsSection>
       <OptionsSection title="Crossings">
         <PreferPreferMoreLine
