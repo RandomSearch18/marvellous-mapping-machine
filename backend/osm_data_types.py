@@ -47,6 +47,15 @@ class OSMWayData(TypedDict):
     length: float
 
 
+def truthy_tag(tags: dict[str, str], key: str) -> bool:
+    value = tags.get(key)
+    if not value:
+        return False
+    if value in ["no", "none"]:
+        return False
+    return True
+
+
 def way_has_sidewalk(
     way: dict[str, str]
 ) -> Literal["both"] | Literal["left"] | Literal["right"] | Literal["no"] | None:
@@ -173,6 +182,10 @@ def way_incline_gradient(
     if not value:
         return None
     normalised_value = value.strip().lower()
+    if normalised_value == "up":
+        return "up"
+    if normalised_value == "down":
+        return "down"
     unit_char = normalised_value[-1]
     number = normalised_value[:-1].strip()
     match unit_char:

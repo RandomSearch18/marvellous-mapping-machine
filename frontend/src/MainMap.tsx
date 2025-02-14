@@ -2,7 +2,7 @@ import type { CircleOptions, Layer, Map, PolylineOptions, Popup } from "leaflet"
 import { $, $$, useEffect, useMemo } from "voby"
 import { currentRoute, SegmentDebugWeight } from "./currentRoute.mts"
 import { Coordinates, Line } from "./types.mts"
-import { options } from "./options/optionsStorage"
+import { options } from "./options/optionsStorage.mts"
 
 export const leaflet = $<typeof import("leaflet")>()
 export const mainMap = $<Map>()

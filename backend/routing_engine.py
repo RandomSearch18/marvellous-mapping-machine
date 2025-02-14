@@ -1,4 +1,5 @@
 from math import inf
+from typing import Literal
 from warnings import warn
 import networkx
 import requests
@@ -9,6 +10,7 @@ from osm_data_types import (
     OSMNode,
     OSMWay,
     OSMWayData,
+    truthy_tag,
     way_has_sidewalk,
     way_incline_gradient,
     way_maxspeed_mph,
@@ -71,18 +73,50 @@ class RoutingGraph:
         return self._graph.nodes[node_id]["pos"]
 
 
+type AvoidPreferNeutral = Literal[-1] | Literal[0] | Literal[1]
+type RoutingOptionValue = AvoidPreferNeutral | bool
+
+
 class RoutingOptions:
-    def truthy(self, key: str) -> bool:
-        return False  # TODO
+    def __init__(self, options: dict):
+        # Ensure the options is a proper Python dict
+        # (because JS code may call this function)
+        if type(options).__name__ == "JsProxy":
+            options = options.to_py()  # type: ignore
+        for key, value in options.items():
+            valid_value = value in [-1, 0, 1] or isinstance(value, bool)
+            if not valid_value:
+                raise ValueError(f"Invalid option value: {key}={value}")
+        self.options: dict[str, RoutingOptionValue] = options
+
+    def get_tri_state(self, key: str) -> AvoidPreferNeutral:
+        value = self.options[key]
+        if isinstance(value, bool):
+            raise ValueError(
+                f"Option {key} is not a tri-state (avoid/prefer/neutral) value"
+            )
+        return value
+
+    def get_bool(self, key: str) -> bool:
+        value = self.options[key]
+        if not isinstance(value, bool):
+            raise ValueError(f"Option {key} is not a boolean value")
+        return value
+
+    def true(self, key: str) -> bool:
+        return self.get_bool(key)
+
+    def false(self, key: str) -> bool:
+        return not self.get_bool(key)
 
     def neutral(self, key: str) -> bool:
-        return True  # TODO
+        return self.get_tri_state(key) == 0
 
     def positive(self, key: str) -> bool:
-        return False  # TODO
+        return self.options[key] == 1
 
     def negative(self, key: str) -> bool:
-        return False  # TODO
+        return self.options[key] == -1
 
 
 class RouteCalculator:
@@ -121,6 +155,27 @@ class RouteCalculator:
         if way.get("service") == "bus":
             way.setdefault("foot", "no")
 
+    def access_is_legal(self, tags: dict) -> bool:
+        """Checks if the provided node or way is legal to be walked on
+
+        - Uses access tags and the routing options to determine if access should be allowed
+        - Only considers pedestrian access
+        - Returns `True` if legal access is allowed, or `False` if access shouldn't be allowed
+        - Assumes `True` if access tags aren't present
+        """
+        access = tags.get("foot") or tags.get("access")
+        if access == "no":
+            return False
+        if access == "private" and not self.options.true("allow_private_access"):
+            return False
+        if access in ["customers", "permit"] and not self.options.true(
+            "allow_customer_access"
+        ):
+            return False
+        if access in ["agricultural", "forestry", "delivery", "military"]:
+            return False
+        return True
+
     def base_weight_road(self, way: dict) -> float | None:
         # In the future we might want consider additional factors in this method,
         # hence the logic where we start with a weight of 1 and multiply it.
@@ -135,9 +190,9 @@ class RouteCalculator:
             case "secondary" | "secondary_link":
                 weight *= 15
             case "tertiary" | "tertiary_link":
-                weight *= 5 if self.options.truthy("higher_traffic_roads") else 10
+                weight *= 5 if self.options.true("allow_higher_traffic_roads") else 10
             case "unclassified":
-                weight *= 4 if self.options.truthy("higher_traffic_roads") else 6
+                weight *= 4 if self.options.true("allow_higher_traffic_roads") else 6
             case "residential":
                 weight *= 3
             case "living_street":
@@ -160,6 +215,8 @@ class RouteCalculator:
                         weight *= 2
             case _:
                 return None
+        if self.options.false("allow_walking_on_roads"):
+            weight *= 60
         return weight
 
     def additional_weight_road(self, way: dict) -> float:
@@ -171,9 +228,9 @@ class RouteCalculator:
                     factor *= 2
             except ValueError:
                 warn(f"Couldn't parse lanes={way['lanes']}")
-        if way.get("shoulder") and way.get("shoulder") != "no":
+        if truthy_tag(way, "shoulder"):
             factor *= 0.9
-        if way.get("verge") and way.get("verge") != "no":
+        if truthy_tag(way, "verge"):
             factor *= 0.95
         return factor
 
@@ -220,8 +277,10 @@ class RouteCalculator:
             maintained = 1
         if way.get("informal") == "yes":
             maintained = -1
+            weight *= 1 - self.options.get_tri_state("desire_paths") * 0.5
         if maintained == 1:
             trail_visibility_default = "excellent"
+            weight *= 1 - self.options.get_tri_state("maintained_paths") * 0.5
         if maintained == -1:
             weight *= 1.05
         # Parse sac_scale=*
@@ -299,18 +358,34 @@ class RouteCalculator:
             case "core_path":
                 # Scotland!
                 weight *= 0.9
+        public_rights_of_way = [
+            "public_footpath",
+            "public_bridleway",
+            "restricted_byway",
+            "byway_open_to_all_traffic",
+            "public_right_of_way",
+            "core_path",
+        ]
+        if designation in public_rights_of_way:
+            weight *= 1 - self.options.get_tri_state("rights_of_way") * 0.3
+        # Parse segregated=*
         segregated = way.get("segregated")
         match segregated:
             case "yes":
                 weight *= 0.98
             case "no":
                 weight *= 1.02
+        # Handle obstacles along the path
         obstacle = way.get("obstacle")
         match obstacle:
             case "vegetation":
                 weight *= 1.10
+        # Handle any pavement preference
+        if way.get("footway") == "sidewalk":
+            weight *= 1 - self.options.get_tri_state("pavements") * 0.4
+        # Add penalty for wheelchair users if the path is inaccessible
         wheelchair = way.get("wheelchair", "yes" if wheelchair_suitable == 1 else "no")
-        if self.options.positive("wheelchair_accessible"):
+        if self.options.true("wheelchair_accessible"):
             match wheelchair:
                 case "yes":
                     weight *= 0.9
@@ -337,7 +412,7 @@ class RouteCalculator:
         assumed_smoothness = None
         if surface in ["asphalt", "chipseal"]:
             assumed_smoothness = "good"
-        nicest_surfaces = [
+        nice_paved_surfaces = [
             "asphalt",
             "chipseal",
             "paving_stones:lanes",
@@ -360,7 +435,7 @@ class RouteCalculator:
             "cobblestone",
             "cobblestone:flattened",
         ]
-        unpaved_nice_surfaces = [
+        nice_unpaved_surfaces = [
             "compacted",
             "fine_gravel",
             "gravel",
@@ -371,15 +446,20 @@ class RouteCalculator:
         ]
         bare_ground_surfaces = ["dirt", "grass", "sand", "snow", "earth"]
         muddy_surfaces = ["mud"]
-        if surface in nicest_surfaces:
+        if surface in nice_paved_surfaces:
+            factor *= 1 - self.options.get_tri_state("paved_paths") * 0.5
             factor *= 0.95
         elif surface in paved_surfaces:
-            factor *= 1.1 if self.options.positive("wheelchair_accessible") else 0.95
-        elif surface in unpaved_nice_surfaces:
+            factor *= 1 - self.options.get_tri_state("paved_paths") * 0.5
+            factor *= 1.1 if self.options.true("wheelchair_accessible") else 0.95
+        elif surface in nice_unpaved_surfaces:
+            factor *= 1 - self.options.get_tri_state("unpaved_paths") * 0.5
             factor *= 0.99
         elif surface in bare_ground_surfaces:
+            factor *= 1 - self.options.get_tri_state("unpaved_paths") * 0.5
             factor *= 1.05
         elif surface in muddy_surfaces:
+            factor *= 1 - self.options.get_tri_state("unpaved_paths") * 0.5
             factor *= 4
         match way.get("smoothness", assumed_smoothness):
             case "excellent" | "good" | "intermediate":
@@ -395,17 +475,36 @@ class RouteCalculator:
                 factor *= 1.1
             if isinstance(gradient, int) and abs(gradient) > 0.025:
                 # 2.5% as the maximum suitable incline for wheelchair users
-                if self.options.positive("wheelchair_accessible"):
+                if self.options.true("wheelchair_accessible"):
                     factor *= 3
         factor *= self.additional_weight_ford(way)
+        match way.get("lit"):
+            case "yes" | "24/7" | "automatic" | "limited":
+                lit = True
+            case "no" | "disused":
+                lit = False
+            case _:
+                lit = None
+        if lit is True:
+            factor *= 1 - self.options.get_tri_state("lit_paths") * 0.3
+        indoors = (
+            way.get("indoor") in ["yes", "corridor"] or way.get("highway") == "corridor"
+        )
+        if indoors:
+            factor *= 1 - self.options.get_tri_state("indoor_paths") * 0.5
+        covered = (
+            truthy_tag(way, "covered")
+            or truthy_tag(way, "tunnel")
+            or truthy_tag(way, "shelter")
+            or indoors
+        )
+        if covered:
+            factor *= 1 - self.options.get_tri_state("covered_paths") * 0.4
         return factor
 
     def calculate_way_weight(self, way: dict) -> float:
         # Handle access tags
-        access = way.get("foot") or way.get("access")
-        if access == "no":
-            return inf
-        if access == "private" and not self.options.truthy("private_access"):
+        if not self.access_is_legal(way):
             return inf
 
         # First, try parsing the way data as a road
@@ -426,6 +525,9 @@ class RouteCalculator:
                 sidewalk_guessed = True
             if has_sidewalk == "no":
                 # We're walking on the road carriageway
+                if way.get("foot") == "use_sidepath":
+                    # Never route along a carriageway if it's forbidden to do so
+                    return inf
                 additional_factors = self.additional_weight_road(way)
                 return (
                     base_weight_as_road
@@ -464,15 +566,73 @@ class RouteCalculator:
         # If it doesn't match any of the above, consider it unroutable
         return inf
 
+    def calculate_crossing_weight(self, node: dict) -> float:
+        # Crossing types
+        crossing = node.get("crossing")
+        crossing_ref = node.get("crossing_ref")
+        weight = 2.5
+        if crossing == "no":
+            weight = inf
+        if crossing == "zebra" or crossing_ref == "zebra":
+            weight = 1.2
+        if crossing == "traffic_signals":
+            weight = 1
+        if crossing == "uncontrolled" or crossing == "unmarked":
+            weight = 2
+        if crossing == "informal":
+            weight = 4
+        if crossing:
+            warn(f"Ignoring unknown crossing tag: crossing={crossing}")
+        # User's preference for crossing types
+        marked_crossing = (
+            crossing in ["zebra", "traffic_signals"]
+            or crossing_ref == "zebra"
+            or truthy_tag(node, "crossing:markings")
+        )
+        if self.options.true("prefer_marked_crossings"):
+            if not marked_crossing:
+                weight *= 3
+        traffic_light_crossing = crossing == "traffic_signals" or truthy_tag(
+            node, "traffic_signals"
+        )
+        if self.options.true("prefer_traffic_light_crossings"):
+            if not traffic_light_crossing:
+                weight *= 2.5
+
+        # Additional crossing tags
+        raised_crossing = node.get("traffic_calming") == "table"
+        if raised_crossing:
+            weight *= 0.75
+        elif node.get("crossing:continuous") == "yes":
+            weight *= 0.5
+        if node.get("crossing:island") == "yes":
+            weight *= 0.7
+        if self.options.true("prefer_audible_crossings"):
+            if node.get("traffic_signals:sound") == "yes":
+                weight *= 0.6
+            elif node.get("traffic_signals:sound") == "no":
+                weight *= 4
+        kerb = node.get("kerb")
+        tactile_paving = node.get("tactile_paving")
+        if self.options.true("wheelchair_accessible") or self.options.true(
+            "prefer_dipped_kerbs"
+        ):
+            if kerb == "lowered" or raised_crossing:
+                weight *= 0.8
+            elif kerb == "flush":
+                weight *= 0.75
+        if self.options.true("prefer_tactile_paving"):
+            if kerb == "flush" and tactile_paving == "no":
+                weight *= 10
+        # TODO parse tactile_paving
+        return weight
+
     def calculate_node_weight(self, node_id: int) -> float:
         node = self.graph.node(node_id).get("tags")
         if not node:
             # Untagged node, so don't add any weight
             return 0
-        access = node.get("foot") or node.get("access")
-        if access == "no":
-            return inf
-        if access == "private" and not self.options.truthy("private_access"):
+        if not self.access_is_legal(node):
             return inf
         # Most barriers only block motor traffic, so we only consider those that generally block pedestrians.
         # We assume (by default) that these barriers will be able to be opened by a pedestrian,
@@ -489,6 +649,8 @@ class RouteCalculator:
             ]
             if not explicitly_unlocked:
                 return inf
+        if node.get("highway") == "crossing":
+            return self.calculate_crossing_weight(node)
         return 0
 
     def calculate_weight(self, node_a: int, node_b: int, way_data: OSMWayData) -> float:

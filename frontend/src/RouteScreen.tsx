@@ -4,6 +4,7 @@ import { currentRoute } from "./currentRoute.mts"
 import { BboxTuple, Coordinates, Line, NominatimPlace } from "./types.mts"
 import { ValidationError } from "./validationError.mts"
 import { throttle, CANCELLED } from "./throttle.mts"
+import { options } from "./options/optionsStorage.mts"
 
 enum CalculationState {
   Idle,
@@ -215,7 +216,10 @@ async function calculateRoute() {
   routeCalculationProgress(CalculationState.ComputingGraph)
   await tickUI()
   const routing_graph = routing_engine.compute_graph(ways, raw_nodes)
-  const calculator = py.RouteCalculator(routing_graph, py.RoutingOptions())
+  const calculator = py.RouteCalculator(
+    routing_graph,
+    py.RoutingOptions(options.routing)
+  )
   routeCalculationProgress(CalculationState.CalculatingRoute)
   await tickUI()
   const route = calculator.calculate_route_a_star(startPos, endPos)

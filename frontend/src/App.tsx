@@ -11,8 +11,8 @@ function App() {
   return (
     <>
       <h1 class="sr-only">Marvellous mapping machine</h1>
-      <div class="content">
-        <div id="screens">
+      <div class="content flex flex-col h-full justify-between">
+        <div id="screens" class="overflow-y-auto">
           <div class="screen" data-screen="map" id="active-screen">
             <MainMap />
             {() => <CurrentLocationButton />}

@@ -21,6 +21,11 @@
   background-color: var(--fallback-su, oklch(var(--su) / var(--tw-bg-opacity)));
 }
 
+.hover\:btn-inset:hover {
+  /* Only works well for neutral buttons for whatever reason */
+  box-shadow: inset 0 0 20px 3px oklch(var(--btn-color));
+}
+
 #app {
-  /* --p: 2 0.1 0.9; */
+  height: 100dvh;
 }
