@@ -529,6 +529,67 @@ class RouteCalculator:
         # If it doesn't match any of the above, consider it unroutable
         return inf
 
+    def calculate_crossing_weight(self, node: dict) -> float:
+        # Crossing types
+        crossing = node.get("crossing")
+        crossing_ref = node.get("crossing_ref")
+        weight = 2.5
+        if crossing == "no":
+            weight = inf
+        if crossing == "zebra" or crossing_ref == "zebra":
+            weight = 1.2
+        if crossing == "traffic_signals":
+            weight = 1
+        if crossing == "uncontrolled" or crossing == "unmarked":
+            weight = 2
+        if crossing == "informal":
+            weight = 4
+        if crossing:
+            warn(f"Ignoring unknown crossing tag: crossing={crossing}")
+        # User's preference for crossing types
+        marked_crossing = (
+            crossing in ["zebra", "traffic_signals"]
+            or crossing_ref == "zebra"
+            or truthy_tag(node, "crossing:markings")
+        )
+        if self.options.true("prefer_marked_crossings"):
+            if not marked_crossing:
+                weight *= 3
+        traffic_light_crossing = crossing == "traffic_signals" or truthy_tag(
+            node, "traffic_signals"
+        )
+        if self.options.true("prefer_traffic_light_crossings"):
+            if not traffic_light_crossing:
+                weight *= 2.5
+
+        # Additional crossing tags
+        raised_crossing = node.get("traffic_calming") == "table"
+        if raised_crossing:
+            weight *= 0.75
+        elif node.get("crossing:continuous") == "yes":
+            weight *= 0.5
+        if node.get("crossing:island") == "yes":
+            weight *= 0.7
+        if self.options.true("audible_crossings"):
+            if node.get("traffic_signals:sound") == "yes":
+                weight *= 0.6
+            elif node.get("traffic_signals:sound") == "no":
+                weight *= 4
+        kerb = node.get("kerb")
+        tactile_paving = node.get("tactile_paving")
+        if self.options.true("wheelchair_accessible") or self.options.true(
+            "prefer_dipped_kerbs"
+        ):
+            if kerb == "lowered" or raised_crossing:
+                weight *= 0.8
+            elif kerb == "flush":
+                weight *= 0.75
+        if self.options.true("prefer_tactile_paving"):
+            if kerb == "flush" and tactile_paving == "no":
+                weight *= 10
+        # TODO parse tactile_paving
+        return weight
+
     def calculate_node_weight(self, node_id: int) -> float:
         node = self.graph.node(node_id).get("tags")
         if not node:
@@ -554,6 +615,8 @@ class RouteCalculator:
             ]
             if not explicitly_unlocked:
                 return inf
+        if node.get("highway") == "crossing":
+            return self.calculate_crossing_weight(node)
         return 0
 
     def calculate_weight(self, node_a: int, node_b: int, way_data: OSMWayData) -> float:
