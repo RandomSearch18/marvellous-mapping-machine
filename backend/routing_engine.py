@@ -277,7 +277,7 @@ class RouteCalculator:
             maintained = 1
         if way.get("informal") == "yes":
             maintained = -1
-            weight *= 1 - self.options.get_tri_state("informal_paths") * 0.5
+            weight *= 1 - self.options.get_tri_state("desire_paths") * 0.5
         if maintained == 1:
             trail_visibility_default = "excellent"
             weight *= 1 - self.options.get_tri_state("maintained_paths") * 0.5
