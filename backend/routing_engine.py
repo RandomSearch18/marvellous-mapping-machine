@@ -106,6 +106,9 @@ class RoutingOptions:
     def true(self, key: str) -> bool:
         return self.get_bool(key)
 
+    def false(self, key: str) -> bool:
+        return not self.get_bool(key)
+
     def neutral(self, key: str) -> bool:
         return self.get_tri_state(key) == 0
 
@@ -212,6 +215,8 @@ class RouteCalculator:
                         weight *= 2
             case _:
                 return None
+        if self.options.false("allow_walking_on_roads"):
+            weight *= 60
         return weight
 
     def additional_weight_road(self, way: dict) -> float:
@@ -272,8 +277,10 @@ class RouteCalculator:
             maintained = 1
         if way.get("informal") == "yes":
             maintained = -1
+            weight *= 1 - self.options.get_tri_state("informal_paths") * 0.5
         if maintained == 1:
             trail_visibility_default = "excellent"
+            weight *= 1 - self.options.get_tri_state("maintained_paths") * 0.5
         if maintained == -1:
             weight *= 1.05
         # Parse sac_scale=*
@@ -351,6 +358,16 @@ class RouteCalculator:
             case "core_path":
                 # Scotland!
                 weight *= 0.9
+        public_rights_of_way = [
+            "public_footpath",
+            "public_bridleway",
+            "restricted_byway",
+            "byway_open_to_all_traffic",
+            "public_right_of_way",
+            "core_path",
+        ]
+        if designation in public_rights_of_way:
+            weight *= 1 - self.options.get_tri_state("public_rights_of_way") * 0.3
         # Parse segregated=*
         segregated = way.get("segregated")
         match segregated:
