@@ -1,6 +1,6 @@
 import { useMemo } from "voby"
 import { options, setRoutingOption } from "./optionsStorage.mts"
-import { RoutingOptionsOptions } from "../pyscript.mts"
+import { RoutingOptions } from "../pyscript.mts"
 import OptionLine from "./OptionLine"
 import CombiButtonButton from "./CombiButtonButton"
 
@@ -9,7 +9,7 @@ function AvoidNeutralPreferLine({
   key,
 }: {
   label: JSX.Child
-  key: keyof RoutingOptionsOptions
+  key: keyof RoutingOptions
 }) {
   const state = useMemo(() => {
     const routingOptions = options.routing

@@ -1,4 +1,4 @@
-import { RoutingOptionsOptions } from "../pyscript.mts"
+import { RoutingOptions } from "../pyscript.mts"
 import BooleanOptionLine from "./BooleanOptionLine"
 
 export function PreferPreferMoreLine({
@@ -6,7 +6,7 @@ export function PreferPreferMoreLine({
   key,
 }: {
   label: JSX.Child
-  key: keyof RoutingOptionsOptions
+  key: keyof RoutingOptions
 }) {
   return BooleanOptionLine({
     label,
@@ -29,7 +29,7 @@ export function NeutralPreferLine({
   key,
 }: {
   label: JSX.Child
-  key: keyof RoutingOptionsOptions
+  key: keyof RoutingOptions
 }) {
   return BooleanOptionLine({
     label,
@@ -52,7 +52,7 @@ export function DisallowAllowLine({
   key,
 }: {
   label: JSX.Child
-  key: keyof RoutingOptionsOptions
+  key: keyof RoutingOptions
 }) {
   return BooleanOptionLine({
     label,
@@ -75,7 +75,7 @@ export function NeverReduceLine({
   key,
 }: {
   label: JSX.Child
-  key: keyof RoutingOptionsOptions
+  key: keyof RoutingOptions
 }) {
   return BooleanOptionLine({
     label,
