@@ -6,7 +6,7 @@ export const enum TriStateOption {
   Prefer = 1,
 }
 
-export type RoutingOptionsOptions = {
+export type RoutingOptions = {
   unpaved_paths: TriStateOption
   paved_paths: TriStateOption
   covered_paths: TriStateOption
@@ -39,7 +39,7 @@ export interface WindowPy {
   ) => any
   RouteCalculator: (routing_graph: any, routing_options: any) => any
   RoutingEngine: () => any
-  RoutingOptions: (options: RoutingOptionsOptions) => any
+  RoutingOptions: (options: RoutingOptions) => any
 }
 
 export const usePy = $<WindowPy>()

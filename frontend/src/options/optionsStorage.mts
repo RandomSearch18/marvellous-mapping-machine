@@ -1,5 +1,5 @@
 import { store, useEffect } from "voby"
-import { RoutingOptionsOptions, TriStateOption } from "../pyscript.mts"
+import { RoutingOptions, TriStateOption } from "../pyscript.mts"
 
 export type Options = {
   /** Frontend-only options */
@@ -8,7 +8,7 @@ export type Options = {
     bboxOverlay: boolean
   }
   /** Options to be passed to the Python routing engine */
-  routing: RoutingOptionsOptions
+  routing: RoutingOptions
 }
 
 const defaultOptions: Options = {
@@ -72,9 +72,9 @@ useEffect(() => {
   console.debug("Updated saved options:", serializedOptions)
 })
 
-export function setRoutingOption<T extends keyof RoutingOptionsOptions>(
+export function setRoutingOption<T extends keyof RoutingOptions>(
   key: T,
-  value: RoutingOptionsOptions[T]
+  value: RoutingOptions[T]
 ) {
   if (!(key in options.routing)) {
     throw new Error(`Option doesn't exist: ${key}`)

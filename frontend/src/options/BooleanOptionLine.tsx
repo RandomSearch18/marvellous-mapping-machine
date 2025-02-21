@@ -1,6 +1,6 @@
 import { useMemo } from "voby"
 import { options, setRoutingOption } from "./optionsStorage.mts"
-import { RoutingOptionsOptions } from "../pyscript.mts"
+import { RoutingOptions } from "../pyscript.mts"
 import OptionLine from "./OptionLine"
 import CombiButtonButton from "./CombiButtonButton"
 
@@ -10,7 +10,7 @@ function BooleanOptionLine({
   buttons,
 }: {
   label: JSX.Child
-  key: keyof RoutingOptionsOptions
+  key: keyof RoutingOptions
   buttons: {
     false: {
       text: string
