@@ -22,18 +22,10 @@ geodesic_wgs84: Geodesic = Geodesic.WGS84  # type: ignore
 
 
 def distance_between_points(a: Coordinates, b: Coordinates) -> float:
+    """Returns the distance between two coordinates, in meters, using a geodesic model."""
     result = geodesic_wgs84.Inverse(a[0], a[1], b[0], b[1])
     distance_meters = result["s12"]
     return distance_meters
-
-
-def euclidean_distance(a: Coordinates, b: Coordinates) -> float:
-    """Euclidean distance for two sets of coordinates.
-
-    - Doesn't really make sense in terms of points on Earth, but it's useful as a simple heuristic
-    - Units: none really, the outputs only make sense relative to each other
-    """
-    return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
 
 
 class RoutingGraph:
@@ -691,12 +683,15 @@ class RouteCalculator:
         start_node = self.graph.nearest_node(start_pos)
         end_node = self.graph.nearest_node(end_pos)
 
-        # Use a very simple heuristic of pretending that the coordinates are cartesian and using Euclidean distance
-        # maybe this can be refined in the future, maybe it won't be
         def heuristic(node_from, node_to):
-            return euclidean_distance(
-                self.graph.node_position(node_from), self.graph.node_position(node_to)
+            direct_distance = distance_between_points(
+                self.graph.node_position(node_from),
+                self.graph.node_position(node_to),
             )
+            # For this to be admissible, we shall assume that there aren't any weight densities below 0.1/meter
+            # Therefore, we can take the lower bound for weight between two points to be direct_distance * 0.1
+            # This means that if a path goes the long way around but has weight density < 0.1, we might miss it
+            return direct_distance * 0.1
 
         # So that we're not passing class methods around as callbacks:
         def weight(node_from, node_to, data):
