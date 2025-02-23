@@ -659,8 +659,6 @@ class RouteCalculator:
         self.add_implicit_tags(way_data["tags"])
         way_weight = self.calculate_way_weight(way_data["tags"])
         node_weight = self.calculate_node_weight(node_a)
-        # Making weight info available for debugging
-        print(way_weight, way_data)
         if way_data["id"] in self.way_weights:
             # A bit of a hack: assumes that this function is called exactly once for each section (edge) of the way
             self.way_weights[way_data["id"]]["total_weight"] += (
@@ -786,6 +784,9 @@ class RoutingEngine:
             for i in range(len(way.nodes) - 1):
                 node_from = way.nodes[i]
                 node_to = way.nodes[i + 1]
+                if graph.has_edge(node_from.id, node_to.id):
+                    # :ohno:
+                    print(f"Duplicate edge between {node_from.id} and {node_to.id}")
                 graph.add_edge(
                     node_from.id,
                     node_to.id,
