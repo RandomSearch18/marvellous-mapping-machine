@@ -100,6 +100,7 @@ if __name__ == "__main__":
                     "steps": 0,
                     "prefer_marked_crossings": False,
                     "prefer_traffic_light_crossings": False,
+                    "prefer_audible_crossings": False,
                     "prefer_dipped_kerbs": False,
                     "prefer_tactile_paving": False,
                     "allow_private_access": False,
