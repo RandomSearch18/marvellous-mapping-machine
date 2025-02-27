@@ -1,6 +1,8 @@
 import { store, useEffect } from "voby"
 import { RoutingOptions, TriStateOption } from "../pyscript.mts"
 
+const LOCAL_STORAGE_KEY = "options"
+
 export type Options = {
   /** Frontend-only options */
   app: {
@@ -42,7 +44,7 @@ const defaultOptions: Options = {
 }
 
 function getInitialOptions(): Options {
-  const rawData = localStorage.getItem("options")
+  const rawData = localStorage.getItem(LOCAL_STORAGE_KEY)
   const stored: {
     app?: Partial<Options["app"]>
     routing?: Partial<Options["routing"]>
@@ -66,9 +68,15 @@ function getInitialOptions(): Options {
 
 export const options = store<Options>(getInitialOptions())
 
+export function clearData() {
+  localStorage.removeItem(LOCAL_STORAGE_KEY)
+  store.reconcile(options, defaultOptions)
+  console.debug("Cleared stored options")
+}
+
 useEffect(() => {
   const serializedOptions = JSON.stringify(options)
-  localStorage.setItem("options", serializedOptions)
+  localStorage.setItem(LOCAL_STORAGE_KEY, serializedOptions)
   console.debug("Updated saved options:", serializedOptions)
 })
 

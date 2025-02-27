@@ -8,6 +8,7 @@ import {
   NeverReduceLine,
   PreferPreferMoreLine,
 } from "./booleanOptionLines.mts"
+import DebugButtons from "./DebugButtons"
 
 function OptionsScreen() {
   return (
@@ -107,6 +108,7 @@ function OptionsScreen() {
             />
           }
         />
+        <DebugButtons />
       </div>
     </div>
   )
