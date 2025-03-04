@@ -8,6 +8,7 @@ import {
   NeverReduceLine,
   PreferPreferMoreLine,
 } from "./booleanOptionLines.mts"
+import DebugButtons from "./DebugButtons"
 
 function OptionsScreen() {
   return (
@@ -84,7 +85,7 @@ function OptionsScreen() {
           input={
             <input
               type="checkbox"
-              checked={options.app.weightOverlay}
+              checked={() => options.app.weightOverlay}
               class="checkbox checkbox-primary"
               onClick={(event) => {
                 if (!(event.target instanceof HTMLInputElement)) return
@@ -98,7 +99,7 @@ function OptionsScreen() {
           input={
             <input
               type="checkbox"
-              checked={options.app.bboxOverlay}
+              checked={() => options.app.bboxOverlay}
               class="checkbox checkbox-primary"
               onClick={(event) => {
                 if (!(event.target instanceof HTMLInputElement)) return
@@ -107,6 +108,7 @@ function OptionsScreen() {
             />
           }
         />
+        <DebugButtons />
       </div>
     </div>
   )
