@@ -52,7 +52,9 @@ function CurrentLocationButton() {
           class="btn btn-square btn-md btn-primary text-2xl"
           id="show-location"
           disabled={() => !mainMap()}
-          onClick={() => mainMap()!.locate({ setView: true, maxZoom: 16 })}
+          onClick={() =>
+            mainMap()!.locate({ setView: true, maxZoom: 16, watch: true })
+          }
         >
           <span class="sr-only">Show current location</span>
           📍
