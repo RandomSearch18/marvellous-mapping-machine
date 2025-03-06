@@ -1,9 +1,11 @@
 import type { Circle } from "leaflet"
 import { leaflet, mainMap } from "./MainMap.jsx"
-import { useEffect, useMemo } from "voby"
+import { $, useEffect, useMemo } from "voby"
 
 let locationMarker: Circle | null = null
 let locationCircle: Circle | null = null
+
+const trackingLocation = $(false)
 
 /** Remove location markers currently on the map */
 function cleanupMarkers() {
@@ -52,9 +54,18 @@ function CurrentLocationButton() {
           class="btn btn-square btn-md btn-primary text-2xl"
           id="show-location"
           disabled={() => !mainMap()}
-          onClick={() =>
-            mainMap()!.locate({ setView: true, maxZoom: 16, watch: true })
-          }
+          onClick={() => {
+            const map = mainMap()
+            if (!map) return console.warn("Map not ready")
+            map.locate({ maxZoom: 16, watch: true })
+            map.once("locationfound", () => {
+              trackingLocation(true)
+              // Stop tracking the location if the user manualy moves the map
+              map.once("dragstart", () => {
+                trackingLocation(false)
+              })
+            })
+          }}
         >
           <span class="sr-only">Show current location</span>
           📍
