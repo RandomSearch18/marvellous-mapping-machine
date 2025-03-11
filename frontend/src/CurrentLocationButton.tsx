@@ -1,4 +1,4 @@
-import type { Circle } from "leaflet"
+import type { Circle, LatLng } from "leaflet"
 import { leaflet, mainMap } from "./MainMap.jsx"
 import { $, useEffect, useMemo } from "voby"
 
@@ -6,11 +6,19 @@ let locationMarker: Circle | null = null
 let locationCircle: Circle | null = null
 
 const trackingLocation = $(false)
+const currentLocation = $<LatLng | null>(null)
 
 /** Remove location markers currently on the map */
 function cleanupMarkers() {
   if (locationMarker) locationMarker.remove()
   if (locationCircle) locationCircle.remove()
+}
+
+function panToCurrentLocation() {
+  const map = mainMap()
+  if (!map) return
+  const location = currentLocation()
+  if (location) map.panTo(location)
 }
 
 useEffect(() => {
@@ -19,6 +27,8 @@ useEffect(() => {
   if (!map || !L) return
 
   map.on("locationfound", (event) => {
+    currentLocation(event.latlng)
+    console.debug("Location found", event)
     cleanupMarkers()
     const radius = event.accuracy / 2
     // Draw a large circle to show GPS accuracy
@@ -31,7 +41,7 @@ useEffect(() => {
     locationCircle = L.circle(event.latlng, {
       radius,
     }).addTo(map)
-    console.debug("Location found", event)
+    if (trackingLocation()) panToCurrentLocation()
   })
 
   map.on("locationerror", (event) => {
@@ -57,10 +67,11 @@ function CurrentLocationButton() {
           onClick={() => {
             const map = mainMap()
             if (!map) return console.warn("Map not ready")
+            trackingLocation(true)
+            panToCurrentLocation()
             map.locate({ maxZoom: 16, watch: true })
             map.once("locationfound", () => {
-              trackingLocation(true)
-              // Stop tracking the location if the user manualy moves the map
+              // Stop tracking the location if the user manually moves the map
               map.once("dragstart", () => {
                 trackingLocation(false)
               })
