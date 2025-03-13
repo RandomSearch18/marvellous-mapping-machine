@@ -67,6 +67,7 @@ function CurrentLocationButton() {
           onClick={() => {
             const map = mainMap()
             if (!map) return console.warn("Map not ready")
+            // Immediately pan to the last known location, and start tracking location so that it updates when new location data is available
             trackingLocation(true)
             panToCurrentLocation()
             map.locate({ maxZoom: 16, watch: true })
