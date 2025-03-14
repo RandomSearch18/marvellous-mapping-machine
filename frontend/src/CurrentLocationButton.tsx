@@ -1,17 +1,27 @@
-import type { Circle, LatLng } from "leaflet"
+import type { Circle, LatLng, Marker } from "leaflet"
 import { leaflet, mainMap } from "./MainMap.jsx"
 import { $, useEffect, useMemo } from "voby"
 
 let locationMarker: Circle | null = null
 let locationCircle: Circle | null = null
+let locationQuestionMark: Marker | null = null
 
 const trackingLocation = $(false)
 const currentLocation = $<LatLng | null>(null)
+
+const locationNotFoundIcon = useMemo(() => {
+  return (
+    leaflet()?.icon({
+      iconUrl: "/bang.png",
+    }) ?? null
+  )
+})
 
 /** Remove location markers currently on the map */
 function cleanupMarkers() {
   if (locationMarker) locationMarker.remove()
   if (locationCircle) locationCircle.remove()
+  if (locationQuestionMark) locationQuestionMark.remove()
 }
 
 function panToCurrentLocation() {
@@ -45,8 +55,16 @@ useEffect(() => {
   })
 
   map.on("locationerror", (event) => {
-    cleanupMarkers()
-    console.error("Leaflet location error", event)
+    console.debug("Location error", event)
+    // Do nothing if we haven't got a location yet
+    const currentPos = currentLocation()
+    if (!currentPos) return
+    const icon = locationNotFoundIcon()
+    if (locationQuestionMark) return // No need to add the question mark again
+    locationQuestionMark = L.marker(currentPos, {
+      // This should never be unavailable if Leaflet has loaded, but weirder things have been known to happen
+      icon: icon ?? undefined,
+    }).addTo(map)
   })
 })
 
