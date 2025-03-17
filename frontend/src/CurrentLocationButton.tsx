@@ -12,7 +12,9 @@ const currentLocation = $<LatLng | null>(null)
 const locationNotFoundIcon = useMemo(() => {
   return (
     leaflet()?.icon({
-      iconUrl: "/bang.png",
+      iconUrl: "/bang-64.png",
+      iconSize: [64, 64],
+      className: "blink",
     }) ?? null
   )
 })

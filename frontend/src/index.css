@@ -26,6 +26,16 @@
   box-shadow: inset 0 0 20px 3px oklch(var(--btn-color));
 }
 
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.blink {
+  animation: blink 1s step-start 0s infinite;
+}
+
 #app {
   height: 100dvh;
 }
