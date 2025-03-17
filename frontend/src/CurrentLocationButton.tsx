@@ -67,6 +67,8 @@ useEffect(() => {
       // This should never be unavailable if Leaflet has loaded, but weirder things have been known to happen
       icon: icon ?? undefined,
     }).addTo(map)
+    // Grey out the location marker
+    locationMarker // TODO
   })
 })
 
