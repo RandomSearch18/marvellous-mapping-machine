@@ -68,7 +68,8 @@ useEffect(() => {
       icon: icon ?? undefined,
     }).addTo(map)
     // Grey out the location marker
-    locationMarker // TODO
+    locationMarker?.setStyle({ color: "grey" })
+    locationCircle?.setStyle({ color: "grey" })
   })
 })
 
