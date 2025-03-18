@@ -2,6 +2,7 @@ import type { Circle, LatLng, Marker } from "leaflet"
 import { leaflet, mainMap } from "./MainMap.jsx"
 import { $, useEffect, useMemo } from "voby"
 
+// We store the markers so that we can remove them when the location updates
 let locationMarker: Circle | null = null
 let locationCircle: Circle | null = null
 let locationQuestionMark: Marker | null = null
