@@ -44,6 +44,7 @@ export interface WindowPy {
 
 export const usePy = $<WindowPy>()
 
+/** Imports the PyScript module, which automatically downloads and runs the app's Python code */
 export async function initPyScript() {
   const pyscriptImport = await import(
     // @ts-ignore - No types for PyScript :(

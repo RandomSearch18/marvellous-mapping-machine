@@ -3,6 +3,8 @@ import App from "./App"
 import "leaflet/dist/leaflet.css"
 import { initPyScript } from "./pyscript.mts"
 
+// Load the service worker provided by the VitePWA plugin
+// (this is only present in production)
 document.addEventListener("load", () => {
   navigator.serviceWorker.register("service-worker.ts")
 })
@@ -13,4 +15,6 @@ if (!appElement) {
 }
 
 render(<App />, appElement)
+
+// Load PyScript
 initPyScript()
