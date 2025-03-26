@@ -1,5 +1,13 @@
 # Marvellous mapping machine
 
+## Try it out
+
+**🧑‍💻 Visit <https://marvellous-mapping-machine.pages.dev/> to use the app :D**
+
+Alternative domains:
+
+- <https://mmmm.20240821.xyz/>
+
 ## Development instructions for backend
 
 ### Preparation
