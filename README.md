@@ -1,4 +1,4 @@
-# Marvellous mapping machine
+# Marvellous Mapping Machine
 
 ## Try it out
 
