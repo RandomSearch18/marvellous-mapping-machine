@@ -1,5 +1,10 @@
+/**
+ * @file Hand-written TypeScript types for some of the functions exposed by the PyScript code (for better DX)
+ */
+
 import { $ } from "voby"
 
+/** An "Avoid", "Neutral" or "Prefer" option value */
 export const enum TriStateOption {
   Avoid = -1,
   Neutral = 0,
@@ -30,6 +35,7 @@ export type RoutingOptions = {
   wheelchair_accessible: boolean
 }
 
+/** The Python constructor functions exported to `window.py` */
 export interface WindowPy {
   BoundingBox: (
     min_lat: number,
