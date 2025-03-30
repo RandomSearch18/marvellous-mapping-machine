@@ -95,3 +95,22 @@ And access the frontend using the URL displayed in your terminal.
 ### Quirks
 
 Note that Python code is only updated when the build tool starts (i.e. no live reload), so if you want to edit Python code while previewing the frontend, you should restart the Vite dev server after editing to see your changes.
+
+## License
+
+Copyright &copy; 2025 RandomSearch (Mish)
+
+Marvellous Mapping Machine is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+![AGPLv3 Free Software logo](https://www.gnu.org/graphics/agplv3-with-text-162x68.png)
