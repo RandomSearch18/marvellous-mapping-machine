@@ -3,9 +3,45 @@ import { $, $$, useEffect, useMemo } from "voby"
 import { currentRoute, SegmentDebugWeight } from "./currentRoute.mts"
 import { Coordinates, Line } from "./types.mts"
 import { options } from "./options/optionsStorage.mts"
+import { activeScreen } from "./BottomBar"
 
 export const leaflet = $<typeof import("leaflet")>()
 export const mainMap = $<Map>()
+
+/** True when the user has just generated a route but hasn't switched to the Map view yet (to see it) */
+export const newUnseenRoute = $(false)
+useEffect(() => {
+  const routeExists = !!currentRoute()
+  // Hopefully this'll only activate when currentRoute is updated to a new route
+  newUnseenRoute(routeExists)
+})
+useEffect(() => {
+  const mapScreenActive = activeScreen() === "Map"
+  // The user has just switched to the Map screen
+  if (newUnseenRoute() === true && mapScreenActive) {
+    // Run the affects we want to run
+    handleFirstRouteView()
+    // Unset the flag
+    newUnseenRoute(false)
+  }
+})
+
+function handleFirstRouteView() {
+  const map = mainMap()
+  if (!map)
+    return console.error("handleFirstRouteView() called before map initialised")
+  const route = currentRoute()
+  if (!route)
+    return console.error(
+      "handleFirstRouteView() called without a current route"
+    )
+  // Ensure the route is in view by default
+  map.fitBounds([route.start, route.end], {
+    padding: [20, 20],
+  })
+  // Workaround for a Leaflet bug where rendering breaks upon switching back to the Map screen
+  window.dispatchEvent(new Event("resize"))
+}
 
 // We dynamically import the Leaflet library so that the UI rendering doesn't block on loading Leaflet
 import("leaflet").then(({ default: leafletImport }) => {
