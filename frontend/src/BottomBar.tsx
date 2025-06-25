@@ -17,7 +17,7 @@ function BottomBar() {
   const activeScreen = $("Map")
   // A map of botton names to observables representing their active state
   const bottomBarButtons = Object.fromEntries(
-    ["Map", "Route", "Options"].map((name) => [
+    ["Map", "Route", "Options", "Reels"].map((name) => [
       name,
       useMemo(() => activeScreen() === name),
     ])
