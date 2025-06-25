@@ -11,6 +11,9 @@ export const mainMap = $<Map>()
 /** True when the user has just generated a route but hasn't switched to the Map view yet (to see it) */
 export const newUnseenRoute = $(false)
 useEffect(() => {
+  console.debug("newUnseenRoute:", newUnseenRoute())
+})
+useEffect(() => {
   const routeExists = !!currentRoute()
   // Hopefully this'll only activate when currentRoute is updated to a new route
   newUnseenRoute(routeExists)
