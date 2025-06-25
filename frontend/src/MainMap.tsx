@@ -42,9 +42,13 @@ function handleFirstRouteView() {
   map.fitBounds([route.start, route.end], {
     padding: [20, 20],
   })
-  // Workaround for a Leaflet bug where rendering breaks upon switching back to the Map screen
-  window.dispatchEvent(new Event("resize"))
 }
+
+// Workaround for a Leaflet bug where rendering breaks upon switching back to the Map screen
+// Seems to happen if the window was resized while the map is hidden, or sometimes upon drawing the route to the map (while the map is hidden)
+useEffect(() => {
+  if (activeScreen() === "Map") window.dispatchEvent(new Event("resize"))
+})
 
 // We dynamically import the Leaflet library so that the UI rendering doesn't block on loading Leaflet
 import("leaflet").then(({ default: leafletImport }) => {
