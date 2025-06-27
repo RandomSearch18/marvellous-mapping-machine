@@ -1,7 +1,7 @@
 {
   "name": "marvellous-mapping-machine",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "AGPL-3.0-or-later",
   "description": "Pedestrian routing package and navigation app that uses OpenStreetMap data",
   "type": "module",
