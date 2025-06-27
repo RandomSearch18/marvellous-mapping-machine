@@ -96,6 +96,18 @@ And access the frontend using the URL displayed in your terminal.
 
 Note that Python code is only updated when the build tool starts (i.e. no live reload), so if you want to edit Python code while previewing the frontend, you should restart the Vite dev server after editing to see your changes.
 
+## AI usage statement
+
+### AI usage for the prototype
+
+Development of this project up to and including the [v0.1.0](https://github.com/RandomSearch18/marvellous-mapping-machine/tree/v0.1.0) tag (i.e. up to and including March 2025) was not assisted by AI in any way.
+
+### AI usage after the prototype
+
+Development of the project after the v0.1.0 tag (i.e. June 2025 onwards) has been assisted by AI in the following ways:
+
+- I use GitHub Copilot's inline completions and edit suggestions for small sections of code (up to a few lines)
+
 ## License
 
 Copyright &copy; 2025 RandomSearch (Mish)
