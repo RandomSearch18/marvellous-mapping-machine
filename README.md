@@ -8,6 +8,12 @@ Alternative domains:
 
 - <https://mmmm.20240821.xyz/>
 
+## Screenshots
+
+![The Map screen open at Canary Wharf](screenshots/canary-warf.png)
+![Checking an address on the Route screen](screenshots/check-address.png)
+![Part of a route from London Waterloo through London](from-waterloo-station.png)
+
 ## Development instructions for backend
 
 ### Preparation
