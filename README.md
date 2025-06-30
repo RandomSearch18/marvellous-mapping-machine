@@ -12,7 +12,7 @@ Alternative domains:
 
 ![The Map screen open at Canary Wharf](screenshots/canary-warf.png)
 ![Checking an address on the Route screen](screenshots/check-address.png)
-![Part of a route from London Waterloo through London](from-waterloo-station.png)
+![Part of a route from London Waterloo through London](screenshots/from-waterloo-station.png)
 
 ## Development instructions for backend
 
