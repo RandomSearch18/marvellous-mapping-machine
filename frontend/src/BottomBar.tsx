@@ -1,5 +1,15 @@
 import { $, For, useEffect, useMemo } from "voby"
 
+// Source of truth for the current active screen. "Map" is the default screen.
+export const activeScreen = $("Map")
+// A map of botton names to observables representing their active state
+const bottomBarButtons = Object.fromEntries(
+  ["Map", "Route", "Options", "Reels"].map((name) => [
+    name,
+    useMemo(() => activeScreen() === name),
+  ])
+)
+
 function BottomBar() {
   function onClick(event: MouseEvent) {
     // Get the button element that was clicked on
@@ -13,15 +23,6 @@ function BottomBar() {
     activeScreen(screenName)
   }
 
-  // Source of truth for the current active screen. "Map" is the default screen.
-  const activeScreen = $("Map")
-  // A map of botton names to observables representing their active state
-  const bottomBarButtons = Object.fromEntries(
-    ["Map", "Route", "Options", "Reels"].map((name) => [
-      name,
-      useMemo(() => activeScreen() === name),
-    ])
-  )
   // e.g. appending #Route to the URL should set the default screen to the Route screen
   const screenFromHash = window.location.hash.slice(1)
   if (screenFromHash in bottomBarButtons) activeScreen(screenFromHash)
