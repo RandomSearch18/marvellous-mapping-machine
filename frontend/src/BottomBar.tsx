@@ -48,7 +48,7 @@ function BottomBar() {
   })
 
   return (
-    <div class="btm-nav static flex-none" id="bottom-bar" onClick={onClick}>
+    <div class="dock static flex-none" id="bottom-bar" onClick={onClick}>
       <For values={Object.entries(bottomBarButtons)}>
         {([name, active]) => <BottomBarButton active={active} name={name} />}
       </For>
@@ -65,13 +65,13 @@ function BottomBarButton({
 }) {
   return (
     <button
-      class={() =>
-        active()
-          ? "active border-t-4 border-pink-800 bg-pink-200 text-pink-800"
-          : "bg-pink-100 text-pink-800"
-      }
+      // class={() =>
+      //   active()
+      //     ? "active border-t-4 border-pink-800 bg-pink-200 text-pink-800"
+      //     : "bg-pink-100 text-pink-800"
+      // }
     >
-      <span class="btm-nav-label">{name}</span>
+      <span class="dock-label">{name}</span>
     </button>
   )
 }

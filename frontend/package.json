@@ -13,11 +13,11 @@
     "prebuild": "cp -r ../backend ./public"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.15",
     "@types/leaflet": "^1.9.14",
-    "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.14",
+    "tailwindcss": "^4.1.18",
     "typescript": "~5.6.2",
     "vite": "^5.4.10",
     "vite-plugin-pwa": "^0.21.1",
@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@pyscript/core": "^0.6.24",
+    "daisyui": "^5.5.18",
     "leaflet": "^1.9.4",
     "voby": "^0.58.1"
   },

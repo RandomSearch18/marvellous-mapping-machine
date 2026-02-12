@@ -4,7 +4,7 @@ import { displayInteger, timestampNow } from "./localization.mts"
 
 function ClearRouteButton() {
   return (
-    <div class="fixed bottom-[6rem] right-2 z-[1000]">
+    <div class="fixed bottom-24 right-2 z-1000">
       <div>
         <button
           class="btn btn-md btn-primary text-2xl font-medium"

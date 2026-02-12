@@ -82,7 +82,7 @@ function CurrentLocationButton() {
   })
 
   return (
-    <div class="fixed bottom-[6rem] right-2 z-[1000]">
+    <div class="fixed bottom-24 right-2 z-1000">
       <div class="tooltip tooltip-left" data-tip={tooltip}>
         <button
           class="btn btn-square btn-md btn-primary text-2xl"

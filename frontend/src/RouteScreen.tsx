@@ -29,7 +29,7 @@ function CalculateButton() {
   })
 
   return (
-    <div class="fixed bottom-[6rem] right-2 z-[1000]">
+    <div class="fixed bottom-24 right-2 z-1000">
       <div class={() => tooltip() && "tooltip tooltip-left"} data-tip={tooltip}>
         <button
           class="btn btn-md btn-primary text-2xl font-medium"
@@ -299,7 +299,7 @@ function RouteScreen() {
                   : "Enter an address or coordinates"
               )}
               disabled={startAtCurrentLocation}
-              class="input input-bordered input-primary w-full border-pink-800 dark:border-primary"
+              class="input input-primary w-full border-pink-800 dark:border-primary"
             />
             <button
               class="btn btn-neutral"
@@ -338,7 +338,7 @@ function RouteScreen() {
               name="route-end"
               type="text"
               placeholder="Enter an address or coordinates"
-              class="input input-bordered input-primary w-full border-pink-800 dark:border-primary"
+              class="input input-primary w-full border-pink-800 dark:border-primary"
             />
             <button
               class="btn btn-neutral"
