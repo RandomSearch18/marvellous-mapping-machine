@@ -8,19 +8,5 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [typography, daisyui],
-  daisyui: {
-    themes: [
-      {
-        light: {
-          ...daisyuiThemes.light,
-          primary: "pink",
-        },
-        dark: {
-          ...daisyuiThemes.dark,
-          primary: "pink",
-        },
-      },
-    ],
-  },
+  plugins: [typography],
 }
