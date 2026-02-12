@@ -2,6 +2,20 @@
 @plugin "daisyui";
 @plugin "@tailwindcss/typography";
 
+@plugin "daisyui/theme" {
+  name: "light";
+  default: true;
+  /* prefer */
+  --color-primary: "pink";
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  default: true;
+  prefersdark: true;
+  --color-primary: "pink";
+}
+
 .btn-inset {
   box-shadow: inset 0 0 20px 3px var(--btn-color);
 }
