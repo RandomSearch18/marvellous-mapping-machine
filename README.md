@@ -4,10 +4,6 @@
 
 **🧑‍💻 Visit <https://marvellous-mapping-machine.pages.dev/> to use the app :D**
 
-Alternative domains:
-
-- <https://mmmm.20240821.xyz/>
-
 ## Screenshots
 
 ![The Map screen open at Canary Wharf](screenshots/canary-warf.png)
